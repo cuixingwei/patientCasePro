@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%=title %></title>
+    <% include ../head.html %>
+    <script src="js/CaseMain.js"></script>
+    <style>
+        label {
+            width: 100px !important;
+            text-align: right !important;
+            display: inline-block !important;
+            margin-right: 5px !important;
+            color: #000 !important;
+        }
+
+        .th {
+            width: 24%;
+            display: inline-block
+        }
+
+        .th_left {
+            width: 25%;
+            float: left;
+            display: inline-block
+        }
+
+        .th_right {
+            width: 25%;
+            float: right;
+            display: inline-block
+        }
+
+        .input_width {
+            width: 10em;
+        }
+
+
+        .tr_height {
+            margin-bottom: 3px;
+        }
+    </style>
+    <script>
+        var patientsGrid;
+        var patientsListGrid;
+        var chargeListGrid;
+        var nurseObserveRecordGrid;
+        var taskCode = '<%= taskCode %>';
+        var taskOrder = '<%= taskOrder %>';
+        var patientCaseOrder = 1;
+        var patientCaseNumber = 0; //病人数
+        var carIdentification; //车辆标识
+        var carCode; //车辆编码
+        var stationCode; //分站编码
+        var addChargeFlag = 0; //添加收费记录标志
+        var chargeRecordID = -1;
+        var addNurseFlag = 0; //添加护理记录标志
+        var nurseRecordID = -1;
+        var addPatientCaseFlag = 0; //添加病历标志
+        var patientCaseID = -1;
+
+        /**
+         * 跳转到打印病历页面
+         */
+        var openPrintPatientCase = function () {
+            var url = "/printPatientCase?taskCode=" + taskCode + "&taskOrder=" + taskOrder + '&patientCaseOrder=' + patientCaseOrder;
+            window.open(url);
+        };
+
+        /**
+         * 跳转到打印病历页面
+         */
+        var openPrintNurseRecord = function () {
+            var url = "/printNurseRecord?taskCode=" + taskCode + "&taskOrder=" + taskOrder + '&patientCaseOrder=' + patientCaseOrder;
+            window.open(url);
+        };
+
+        /*页面加载成功后*/
+        $(document).ready(function () {
+            init();
+            $('#sex').combobox('select', '不祥');
+            /*加载收费信息列表*/
+            chargeListGrid.datagrid('load', {
+                taskCode: taskCode,
+                taskOrder: taskOrder,
+                patientCaseOrder: patientCaseOrder
+            });
+            /*加载护理信息列表*/
+            nurseObserveRecordGrid.datagrid('load', {
+                taskCode: taskCode,
+                taskOrder: taskOrder,
+                patientCaseOrder: patientCaseOrder
+            });
+            /*加载急救措施*/
+            loadCureMeasure();
+            /*加载任务信息*/
+            loadTask();
+        });
+    </script>
+</head>
+<body class="easyui-layout">
+<div id="mainTabs" class="easyui-tabs" data-options="fit:true">
+    <div title="院前急救病历"
+         data-options="iconCls:'ext-icon-page',closable:false,fit:true">
+        <div class="easyui-panel" data-options="closable:false,fit:true">
+            <div class="easyui-layout" fit="true">
+                <div region="north" border="false" style="background:#eee;height:120px;padding:5px;">
+                    <table id="patientsGrid" data-options="fit:true,border:false"></table>
+                </div>
+                <div region="center" title="患者详细信息" border="false" style="background:#eee;">
+                    <form id="patientCaseDetailForm">
+                        <div class="tr_height">
+                            <div class="th_left">
+                                <label class="label">姓名:</label>
+                                <input name="patientName" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label for="sex" class="label">性别:</label>
+                                <input id="sex" name="sex" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label for="departmentCode" class="label">疾病科别:</label>
+                                <input id="departmentCode" name="departmentCode" class="input_width"/>
+                            </div>
+                            <div class="th_right">
+                                <label for="outAddr" class="label">出诊医院:</label>
+                                <input name="outAddr" id="outAddr" class="input_width"/>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div class="th_left">
+                                <label for="age" class="label">年龄:</label>
+                                <input name="age" id="age" class="input_width"/>
+                            </div>
+                            <div class="th">
+                            </div>
+                            <div class="th">
+                                <label for="outcomeCode" class="label">病人转归:</label>
+                                <input name="outcomeCode" id="outcomeCode" class="input_width"/>
+                            </div>
+                            <div class="th_right">
+                                <label for="toAddr" class="label">送达地点:</label>
+                                <input name="toAddr" id="toAddr" class="input_width"/>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div class="th_left">
+                                <label for="workCode" class="label">职业:</label>
+                                <input name="workCode" id="workCode" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label for="identityCode" class="label">身份:</label>
+                                <input name="identityCode" id="identityCode" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label for="treatResultCode" class="label">救治结果:</label>
+                                <input name="treatResultCode" id="treatResultCode" class="input_width"/>
+                            </div>
+                            <div class="th_right">
+                                <label for="patientCooperation" class="label">病家合作:</label>
+                                <input name="patientCooperation" id="patientCooperation" class="input_width"/>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div class="th_left">
+                                <label class="label" for="nationCode">民族:</label>
+                                <input name="nationCode" id="nationCode" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label class="label" for="illnessCode">病情:</label>
+                                <input name="illnessCode" id="illnessCode" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label for="deathCode" class="label">死亡证明:</label>
+                                <input name="deathCode" id="deathCode" class="input_width"/>
+                            </div>
+                            <div class="th_right">
+                                <label for="patientReasonCode" class="label">呼救原因:</label>
+                                <input id="patientReasonCode" name="patientReasonCode" class="input_width"/>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div class="th_left">
+                                <label for="doctor" class="label">随车医生:</label>
+                                <input name="doctor" id="doctor" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label class="label" for="nurse">随车护士:</label>
+                                <input name="nurse" id="nurse" class="input_width"/>
+                            </div>
+                            <div class="th">
+                                <label class="label" for="driver">随车司机:</label>
+                                <input name="driver" id="driver" class="input_width"/>
+                            </div>
+                            <div class="th_right">
+                                <label for="classCode" class="label">分类统计:</label>
+                                <input name="classCode" id="classCode" class="input_width"/>
+                            </div>
+                        </div>
+                        <div style="width: 40%;height: 295px;display: inline-block;background: #eee;float: left;">
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>联系人:</label>
+                                    <input name="linkMan" style="width: 6em;"/>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <label>联系电话:</label>
+                                    <input name="linkPhone" style="width: 11em;"/>
+                                </div>
+                                <div style="display: inline-block;margin-left: 7px;">
+                                    <input type="checkbox" name="threeNO" value="1"/> 三无
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>现场地点:</label>
+                                    <input name="localAddr" style="width: 15em;"/>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <label>里程:</label>
+                                    <input name="distance" style="width: 6em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>接车地址:</label>
+                                    <input name="waitAddr" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>主诉:</label>
+                                    <input name="chiefComplaint" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>现病史:</label>
+                                    <input name="presentIllness" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>既往病史:</label>
+                                    <input name="pastHistory" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>过敏史:</label>
+                                    <input name="allergy" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>诊断:</label>
+                                    <input name="doctorDiagnosis" style="width: 30em;"/>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>途中变化<br>记录:</label>
+                                    <textarea name="middleChange" rows="2" cols="55"></textarea>
+                                </div>
+                            </div>
+                            <div class="tr_height">
+                                <div style="display: inline-block;">
+                                    <label>备注:</label>
+                                    <textarea name="remark" rows="2" cols="55"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="width: 28%;height: 250px;display: inline-block;background: grey;float: right;margin-right: 2%;">
+                            <div class="easyui-panel" title="任务时刻"
+                                 collapsible="false" style="padding:5px;width:100%;height:254px;">
+                                <div style="margin-top: 5px;border:  1px;">
+                                    <span><b>出车时刻:</b></span><br>
+                                    <input readonly="readonly" style="width: 90%;margin-top: 2px;" name="outCarTime"/>
+                                </div>
+                                <div style="margin-top: 5px;">
+                                    <span><b>到达现场时刻:</b></span><br>
+                                    <input readonly="readonly" style="width: 90%;margin-top: 2px;"
+                                           name="arriveSpotTime"/>
+                                </div>
+                                <div style="margin-top: 5px;">
+                                    <span><b>离开现场时刻:</b></span><br>
+                                    <input readonly="readonly" style="width: 90%;margin-top: 2px;"
+                                           name="leaveSpotTime"/>
+                                </div>
+                                <div style="margin-top: 5px;">
+                                    <span><b>到达医院时刻:</b></span><br>
+                                    <input readonly="readonly" style="width: 90%;margin-top: 2px;"
+                                           name="returnHospitalTime"/>
+                                </div>
+                                <div style="margin-top: 5px;">
+                                    <span><b>完成时刻:</b></span><br>
+                                    <input readonly="readonly" style="width: 90%;margin-top: 2px;" name="completeTime"/>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <span style="margin-right: 20px;"><b>医生签名</b></span>
+                                <input name="doctorSign" id="doctorSign" class="input_width"/>
+                            </div>
+                        </div>
+                        <div style="width: 27%;height: 295px;display: inline-block;">
+                            <div class="easyui-panel" title="采取急救措施"
+                                 collapsible="false" style="padding:5px;width:100%;height:254px;">
+                                <form id="cureMeasureForm">
+                                    <div id="cureMeasureDiv">
+
+                                    </div>
+                                </form>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button disabled="disabled">突发事件汇报</button>
+                                <input readonly="readonly" value="否" style="width: 20px;margin-left: 20px;"/></div>
+                        </div>
+
+
+                    </form>
+                </div>
+                <div region="south" border="false" style="height: 40px;">
+                    <div style="height: 30px;display: block;padding-top: 10px;">
+                        <span style="width: 150px;display: inline-block;float: left;margin-left: 200px;">
+                            <a class="easyui-linkbutton" data-options="iconCls:'ext-icon-printer'" id="btn_printCase"
+                               onclick="openPrintPatientCase();">打印病历</a>
+                        </span>
+                         <span style="width: 100px;display: inline-block;margin-left: 100px;">
+                            <a href="#" class="easyui-linkbutton" data-options="disabled:true"
+                               onclick="javascript:alert('提交病历');">提交病历</a>
+                        </span>
+                        <span style="width: 70px;display: inline-block;margin-left: 100px;">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
+                               onclick="javascript:addPatientCase();">添加</a>
+                        </span>
+                        <span style="width: 70px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
+                               onclick="javascript:savePatientCase();">保存</a>
+                        </span>
+                         <span style="width: 70px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
+                               onclick="javascript:deletePatientCase();">删除</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block;margin-left: 100px;">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-bin_closed'"
+                               onclick="javascript:window.close();">退出</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div title="院前急救病历（附表）" data-options="iconCls:'ext-icon-page',closable:false,fit:true">
+        <div style="width: 80%;margin: 0 auto">
+            <form id="patientScheduleForm">
+                <div style="width: 58%;height: 510px;display: inline-block;float: left;margin-right: 2%;">
+                    <div class="easyui-panel" title="体格检查"
+                         collapsible="false" style="padding:5px;width:100%;height:510px;">
+                        <div class="tr_height">
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span style="margin-right: 5px;">血压</span>
+                                <input type="checkbox" onclick="bloodCheckClick(this);" name="noCheck"
+                                       style="margin-right: 5px;"/> 未查
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <input name="BPH" style="width: 40px;" id="BPH"/>
+                                <span style="width: 30px;"><b>/</b></span>
+                                <input style="width: 40px;" name="BPL" id="BPL"/>
+                                <span>mmHg</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block;text-align: right">
+                                <span style="margin-right: 20px;">脉搏（P）:</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <input name="P" style="width: 60px;"/>
+                                <span>次/分</span>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>呼吸（R)：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <input name="R" style="width: 100px;"/>
+                                <span>次/分</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>体温（T）：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <select class="easyui-combobox" name="T" style="width: 100px;"
+                                        data-options="panelHeight:'auto'">
+                                    <option value="未查">未查</option>
+                                </select>
+                                <span>℃</span>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>一般情况：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <select class="easyui-combobox" name="general" id="general" style="width: 100px;"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="无">无</option>
+                                    <option value="尚可">尚可</option>
+                                    <option value="差">差</option>
+                                </select>
+                            </div>
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>病理反射：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <select class="easyui-combobox" name="pathologicalReflex" id="pathologicalReflex"
+                                        style="width: 100px;"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="无">无</option>
+                                    <option value="有">有</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>口唇紫绀：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <select class="easyui-combobox" name="kczg" id="kczg" style="width: 100px;"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="无">无</option>
+                                    <option value="有">有</option>
+                                </select>
+                            </div>
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>神志：</span>
+                            </div>
+                            <div style="width: 23%;display: inline-block">
+                                <select class="easyui-combobox" name="senseSchedule" id="senseSchedule"
+                                        style="width: 100px;"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="清楚">清楚</option>
+                                    <option value="嗜睡">嗜睡</option>
+                                    <option value="模糊">模糊</option>
+                                    <option value="谵妄">谵妄</option>
+                                    <option value="昏睡">昏睡</option>
+                                    <option value="昏迷">昏迷</option>
+                                    <option value="丧失">丧失</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="width: 23%;display: inline-block;text-align: right;">
+                                <span>瞳孔：左</span>
+                            </div>
+                            <div style="width: 70%;display: inline-block">
+                                <input name="leftEye" style="width: 50px;"/>
+                                <span>(mm)&nbsp;对光</span>
+                                <select class="easyui-combobox" name="leftLight" style="width: 70px;" id="leftLight"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="存在">存在</option>
+                                    <option value="消失">消失</option>
+                                    <option value="迟钝">迟钝</option>
+                                </select>
+                                <span>右</span>
+                                <input name="rightEye" style="width: 50px;"/>
+                                <span>(mm)&nbsp;对光</span>
+                                <select class="easyui-combobox" name="rightLight" id="rightLight" style="width: 70px;"
+                                        data-options="editable:false,panelHeight:'auto'">
+                                    <option value="存在">存在</option>
+                                    <option value="消失">消失</option>
+                                    <option value="迟钝">迟钝</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <label>心脏:</label>
+                            <textarea name="heart" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>肺部:</label>
+                            <textarea name="lung" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>头颈:</label>
+                            <textarea name="head" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>胸部:</label>
+                            <textarea name="breast" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>腹部:</label>
+                            <textarea name="abdomen" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>脊柱:</label>
+                            <textarea name="spine" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>四肢:</label>
+                            <textarea name="limb" rows="2" cols="60"></textarea>
+                        </div>
+                        <div class="tr_height">
+                            <label>其他:</label>
+                            <textarea name="others" rows="2" cols="60"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 40%;height: 510px;display: inline-block;float: right">
+                    <div class="easyui-panel" title="创伤指数"
+                         collapsible="false" style="padding:5px;width:100%;height:530px;">
+                        <div style="text-align: center;">
+                            <span>CRAMS&nbsp;&nbsp;计分</span><input name="CRAMS" style="width: 60px;"
+                                                                   readonly="readonly"/>
+                        </div>
+                        <div class="easyui-panel" title="循环"
+                             collapsible="false" style="width:100%;height:90px;">
+                            <span>2分</span><input type="radio" name="cyclePoints" value="3"/> 毛细血管充盈良好或收缩压≥90mmHg<br>
+                            <span>1分</span><input type="radio" name="cyclePoints" value="2"/> 毛细血管充盈迟缓或收缩压89~60mmHg<br>
+                            <span>0分</span><input type="radio" name="cyclePoints" value="1"/> 无毛细血管充盈或收缩压≤59mmHg
+                        </div>
+                        <div class="easyui-panel" title="呼吸"
+                             collapsible="false" style="width:100%;height:90px;">
+                            <span>2分</span><input type="radio" name="breathPoints" value="3"/> 正常<br>
+                            <span>1分</span><input type="radio" name="breathPoints" value="2"/> 不正常（费力、浅或呼吸＞35次/min）<br>
+                            <span>0分</span><input type="radio" name="breathPoints" value="1"/> 无自主呼吸
+                        </div>
+                        <div class="easyui-panel" title="胸腹"
+                             collapsible="false" style="width:100%;height:90px;">
+                            <span>2分</span><input type="radio" name="abdomenPoints" value="3"/> 均无触痛<br>
+                            <span>1分</span><input type="radio" name="abdomenPoints" value="2"/> 胸或腹有触痛<br>
+                            <span>0分</span><input type="radio" name="abdomenPoints" value="1"/> 连枷胸、板状腹、血腹
+                        </div>
+                        <div class="easyui-panel" title="运动"
+                             collapsible="false" style="width:100%;height:90px;">
+                            <span>2分</span><input type="radio" name="motionPoints" value="3"/> 正常（能按吩咐动作）<br>
+                            <span>1分</span><input type="radio" name="motionPoints" value="2"/> 只对疼痛刺激有反应<br>
+                            <span>0分</span><input type="radio" name="motionPoints" value="1"/> 无反应或体位固定
+                        </div>
+                        <div class="easyui-panel" title="言语"
+                             collapsible="false" style="width:100%;height:90px;">
+                            <span>2分</span><input type="radio" name="speechPoints" value="3"/> 正常（对答切题）<br>
+                            <span>1分</span><input type="radio" name="speechPoints" value="2"/> 言语错乱 语无伦次<br>
+                            <span>0分</span><input type="radio" name="speechPoints" value="1"/> 发音听不懂或不能发音
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 100%;height: 100px;">
+                    <div class="easyui-panel" title="治疗措施" collapsible="false"
+                         style="width:100%;height:95px;text-align: center">
+                        <textarea name="cureMeasures" rows="4" cols="149"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div title="院前急救病历（护理）" data-options="iconCls:'ext-icon-page',closable:false,fit:true">
+        <div style="width: 90%;margin: 0 auto">
+            <div style="width: 40%;display: inline-block;float: left;margin-right: 2%;">
+                <div class="easyui-panel" title="患者信息列表" collapsible="false"
+                     style="width:100%;height:200px;text-align: center">
+                    <table id="patientsList" data-options="fit:true,border:false"></table>
+                </div>
+                <div style="margin-top: 10px;margin-right: 20px;margin-left: 20px;display: block;height: 30px;">
+                    <span style="float: left">收费明细</span>
+                    <span style="float: right">
+                        <span>合计金额：</span>
+                        <span style="color: red" id="totalMoney">0</span>
+                    </span>
+                </div>
+                <div class="easyui-panel" collapsible="false"
+                     style="width:100%;height:200px;text-align: center">
+                    <table id="chargeList" data-options="fit:true,border:false"></table>
+                </div>
+                <div class="easyui-panel" collapsible="false"
+                     style="width:100%;height:150px;text-align: center">
+                    <div style="height: 30px;display: block;margin-top:10px;">
+                        <span>收费项</span>
+                        <input id="chargeName" name="chargeName" style="width: 150px;"/>
+                        <span>金额</span>
+                        <input id="chargePrice" name="chargePrice" style="width: 70px;"/>
+                    </div>
+                    <div style="height: 50px;display: block;margin-top:10px;">
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
+                               onclick="javascript:addCharge();">添加</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
+                               onclick="javascript:saveCharge();">保存</a>
+                        </span>
+                         <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
+                               onclick="javascript:deleteCharge();">删除</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div style="width: 56%;display: inline-block;float: right;margin-right: 2%;">
+                <div class="easyui-panel" collapsible="false" title="护理观察记录"
+                     style="width:100%;height:300px;text-align: center">
+                    <table id="nurseObserveRecord" data-options="fit:true,border:false"></table>
+                </div>
+                <div class="easyui-panel" collapsible="false"
+                     style="width:100%;height:288px;text-align: center">
+                    <form id="nurseRecordForm">
+                        <div class="tr_height">
+                            <div style="display: inline-block;width: 40%;float: left">
+                                <span style="display: inline-block;width: 50px;">时间</span>
+                                <input class="easyui-datetimebox" id="nurseDateTime" name="nurseDateTime"
+                                       data-options="required:true,showSeconds:true"
+                                       style="width:150px"/>
+                            </div>
+                            <div style="display: inline-block;width: 40%;">
+                                <label for="nurseSense">神志</label>
+                                <select class="easyui-combobox" id="nurseSense" name="sense" style="width: 100px;"
+                                        data-options="editable:false,panelHeight:150">
+                                    <option value="清楚">清楚</option>
+                                    <option value="嗜睡">嗜睡</option>
+                                    <option value="模糊">模糊</option>
+                                    <option value="谵妄">谵妄</option>
+                                    <option value="昏睡">昏睡</option>
+                                    <option value="昏迷">昏迷</option>
+                                    <option value="丧失">丧失</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="display: inline-block;width: 40%;float: left">
+                                <span style="width: 70px;display: inline-block">瞳孔左&nbsp;&nbsp;大小</span>
+                                <input id="leftSize" name="leftSize" style="width: 100px;"/>
+                                <span>（mm）</span>
+                            </div>
+                            <div style="display: inline-block;width: 40%;">
+                                <label for="sense">反应</label>
+                                <select class="easyui-combobox" name="leftReaction" style="width: 100px;"
+                                        data-options="editable:false,panelHeight:70">
+                                    <option value="++">++</option>
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="display: inline-block;width: 40%;float: left">
+                                <span style="width: 70px;display: inline-block">瞳孔右&nbsp;&nbsp;大小</span>
+                                <input id="rightSize" name="rightSize" style="width: 100px;"/>
+                                <span>（mm）</span>
+                            </div>
+                            <div style="display: inline-block;width: 40%;">
+                                <label for="sense">反应</label>
+                                <select class="easyui-combobox" name="rightReaction" style="width: 100px;"
+                                        data-options="editable:false,panelHeight:70">
+                                    <option value="++">++</option>
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="display: inline-block;width: 30%;float: left">
+                                <span>心率</span>
+                                <input name="heartRate" id="heartRate" style="width: 70px;"/>
+                                <span>次/分</span>
+                            </div>
+                            <div style="display: inline-block;width: 30%">
+                                <span>脉搏</span>
+                                <input name="pulse" id="pulse" style="width: 70px;"/>
+                                <span>次/分</span>
+                            </div>
+                            <div style="display: inline-block;width: 30%">
+                                <span>呼吸</span>
+                                <input name="breath" id="breath" style="width: 70px;"/>
+                                <span>次/分</span>
+                            </div>
+                        </div>
+                        <div class="tr_height">
+                            <div style="display: inline-block;width: 30%;float: left">
+                                <span>血压</span>
+                                <input name="bloodPressure" id="bloodPressure" style="width: 70px;"/>
+                                <span>mmHg</span>
+                            </div>
+                            <div style="display: inline-block;width: 30%">
+                                <span>血氧饱和度</span>
+                                <input name="sao2" id="sao2" style="width: 70px;"/>
+                            </div>
+                            <div style="display: inline-block;width: 30%">
+                                <span>护士签名</span>
+                                <input name="nurseSign" id="nurseSign" style="width: 80px;"/>
+                            </div>
+                        </div>
+                        <div class="easyui-panel" collapsible="false" title="护理措施"
+                             style="width:100%;height:80px;text-align: center">
+                            <textarea name="nurseMeasure" id="nurseMeasure" rows="3" cols="92"></textarea>
+                        </div>
+                    </form>
+                    <div style="height: 40px;display: block;margin-top:10px;padding-top: 10px;">
+                        <span style="width: 150px;display: inline-block;float: left">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-printer'"
+                               id="btn_printNurse"
+                               onclick="openPrintNurseRecord();">打印护理病历</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
+                               onclick="javascript:addNurseRecord();">添加</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
+                               onclick="javascript:saveNurseRecord();">保存</a>
+                        </span>
+                         <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
+                               onclick="javascript:deleteNurseRecord();">删除</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%=title %></title>
+    <!--引入JQuery-->
+    <script src="lib/jquery-2.0.3.js" charset="utf-8"></script>
+    <!--自定义工具JS-->
+    <script src="lib/cxwUtil.js" charset="utf-8"></script>
+    <style type="text/css">
+        table {
+            border-collapse: collapse;
+        }
+
+        table td {
+            border: 1px solid #000000;
+        }
+    </style>
+    <script>
+        var taskCode = '<%= taskCode %>';
+        var taskOrder = '<%= taskOrder %>';
+        var patientCaseOrder = '<%= patientCaseOrder %>';
+        /*页面加载成功后*/
+        $(document).ready(function () {
+            //加载打印日期
+            var datetime = getCurrentTime().split(' ')[0].split('-');
+            $("#cYear").html(datetime[0]);
+            $("#cMonth").html(datetime[1]);
+            $("#cDay").html(datetime[2]);
+
+            $.post('/cases/getPatientScheduleByID', {  //加载病历附表信息
+                taskCode: taskCode,
+                taskOrder: taskOrder,
+                patientCaseOrder: patientCaseOrder
+            }, function (result) {
+                if (result.length > 0) {
+                    var data = result[0];
+                    var BP = data.BPH + '/' + data.BPL;
+                    $("#BP").html(BP);
+                    $("#P").html(data.P);
+                    $("#R").html(data.R);
+                    $("#leftEye").html(data.leftEye);
+                    $("#rightEye").html(data.rightEye);
+                    $("#general").html(data.general);
+                    $("#pathologicalReflex").html(data.pathologicalReflex);
+                    $("#senseSchedule").html(data.sense);
+                    $("#kczg").html(data.kczg);
+                    $("#leftLight").html(data.leftLight);
+                    $("#rightLight").html(data.rightLight);
+                    $("#heart").html(data.heart);
+                    $("#lung").html(data.lung);
+                    $("#head").html(data.head);
+                    $("#breast").html(data.breast);
+                    $("#abdomen").html(data.abdomen);
+                    $("#spine").html(data.spine);
+                    $("#limb").html(data.limb);
+                    $("#others").html(data.others);
+                    $("#cureMeasures").html(data.cureMeasure);
+                    $("#CRAMS").html(data.CRAMS);
+                    $("#T").html(data.T);
+                }
+            });  //end 加载病历附表
+
+            $.post('/cases/getTaskByID', { //加载任务信息
+                taskCode: taskCode,
+                taskOrder: taskOrder
+            }, function (result) {
+                if (result.length > 0) {
+                    data = result[0];
+                    $("#outCarTime").html(data.outCarTime);
+                    $("#arriveSpotTime").html(data.arriveSpotTime);
+                    $("#leaveSpotTime").html(data.leaveSpotTime);
+                    $("#returnHospitalTime").html(data.returnHospitalTime);
+                    $("#completeTime").html(data.completeTime);
+                    $("#linkPhone").html(data.linkPhone);
+                    var addrAndPhone = data.localAddr + '&nbsp;' + data.linkPhone;
+                    $("#addrAndPhone").html(addrAndPhone);
+                }
+            }); //结束加载任务信息
+            var url = '/cases/getPatientsByID?taskCode=' + taskCode + '&taskOrder=' + taskOrder;
+            $.post(url, function (result) {//加载病历信息
+                if (result.rows.length > 0) {
+                    data = result.rows[patientCaseOrder - 1];
+                    $("#patientName").html(data.patientName);
+                    $("#sex").html(data.sex);
+                    $("#departmentCode").html(data.department);
+                    $("#age").html(data.age);
+                    $("#toAddr").html(data.toAddr);
+                    $("#workCode").html(data.work);
+                    $("#identityCode").html(data.identity);
+                    $("#patientCooperation").html(data.patientCooperationName);
+                    $("#nationCode").html(data.nation);
+                    $("#illnessCode").html(data.illness);
+                    $("#deathCode").html(data.death);
+                    $("#patientReasonCode").html(data.patientReason);
+                    $("#classCode").html(data.class);
+                    $("#linkMan").html(data.linkMan);
+                    $("#chiefComplaint").html(data.chiefComplaint);
+                    $("#presentIllness").html(data.presentIllness);
+                    $("#pastHistory").html(data.pastHistory);
+                    $("#allergy").html(data.allergy);
+                    $("#doctorDiagnosis").html(data.doctorDiagnosis);
+                    $("#remark").html(data.remark);
+                    $("#doctorSign").html(data.doctorSign);
+                    $("#doctor").html(data.doctor);
+                    $("#nurse").html(data.nurse);
+                    $("#driver").html(data.driver);
+                    $("#outAddr").html(data.outAddr);
+                }
+            }); //结束加载病历信息
+        });
+    </script>
+</head>
+<body>
+<table width="90%" cellpadding="0" cellspacing="0" align="center" border="0" style="table-layout:fixed;">
+    <caption style="font-size:20px;"><b>重庆三峡中心医院院前急救病历</b></caption>
+    <tr>
+        <td colspan="25" style="border:none">
+            <div style="display: inline-block;width:40%;float: left">
+                <span>病历号:</span>
+                <span style="text-decoration:underline;display:inline-block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div style="display: inline-block;width:60%;float: right;text-align: right">
+                <span id="cYear" style="display: inline-block;width: 100px;"></span>
+                <span>年</span>
+                <span id="cMonth" style="display: inline-block;width: 80px;"></span>
+                <span>月</span>
+                <span id="cDay" style="display: inline-block;width: 80px;"></span>
+                <span>日</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5">
+            <span>出车时间</span><br>
+            <span id="outCarTime"></span>
+        </td>
+        <td colspan="5">
+            <span>到达现场时间</span><br>
+            <span id="arriveSpotTime"></span>
+        </td>
+        <td colspan="5">
+            <span>离开现场时间</span><br>
+            <span id="leaveSpotTime"></span>
+        </td>
+        <td colspan="5">
+            <span>到达医院时间</span><br>
+            <span id="returnHospitalTime"></span>
+        </td>
+        <td colspan="5">
+            <span>完成时间</span><br>
+            <span id="completeTime"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5">
+            <span>姓名:</span>
+            <span id="patientName"></span>
+        </td>
+        <td colspan="5">
+            <span>性别:</span>
+            <span id="sex"></span>
+        </td>
+        <td colspan="5">
+            <span>年龄</span>
+            <span id="age"></span>
+        </td>
+        <td colspan="10">
+            <span>救治地点(住址)及电话:</span>
+            <span id="addrAndPhone"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="5">
+            <span>职业:</span>
+            <span id="workCode"></span>
+        </td>
+        <td colspan="5">
+            <span>身份:</span>
+            <span id="identityCode"></span>
+        </td>
+        <td colspan="5">
+            <span>民族:</span>
+            <span id="nationCode"></span>
+        </td>
+        <td colspan="10">
+            <span>疾病科别:</span>
+            <span id="departmentCode"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="10">
+            <span>出诊医院:</span>
+            <span id="outAddr"></span>
+        </td>
+        <td colspan="15">
+            <span>药敏史:</span>
+            <span id="allergy"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="10">
+            <span>呼救原因:</span>
+            <span id="patientReasonCode"></span>
+        </td>
+        <td colspan="5">
+            <span>病情:</span>
+            <span id="illnessCode"></span>
+        </td>
+        <td colspan="10">
+            <span>分类统计:</span>
+            <span id="classCode"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="10">
+            <span>送达地点:</span>
+            <span id="toAddr"></span>
+        </td>
+        <td colspan="5">
+            <span>救治结果:</span>
+            <span id="treatResultCode"></span>
+        </td>
+        <td colspan="10">
+            <span>联系人:</span>
+            <span id="linkMan"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="10">
+            <span>病家合作:</span>
+            <span id="patientCooperation"></span>
+        </td>
+        <td colspan="5">
+            <span>死亡证明:</span>
+            <span id="deathCode"></span>
+        </td>
+        <td colspan="10">
+            <span>联系电话:</span>
+            <span id="linkPhone"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <span>主诉:</span>
+            <span id="chiefComplaint"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <span>现病史:</span>
+            <span id="presentIllness"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <span>既往史:</span>
+            <span id="pastHistory"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td align="center" rowspan="13">
+            <span>体格检查</span>
+        </td>
+        <td colspan="7">
+            <span>T:</span>
+            <span style="display: inline-block;width: 80px;" id="T"></span>
+            <span>℃</span>
+        <td colspan="7">
+            <span>&nbsp;P:</span>
+            <span style="display: inline-block;width: 60px;" id="P"></span>
+            <span>次/分</span>
+        </td>
+        <td colspan="10" align="center">
+            <span>CRAM&nbsp;计分:</span>
+            <span id="CRAMS"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="7">
+            <span>R:</span>
+            <span style="display: inline-block;width: 80px;" id="R"></span>
+            <span>次/分</span>
+        <td colspan="7">
+            <span>B/P:</span>
+            <span style="display: inline-block;width: 60px;" id="BP"></span>
+            <span>mmHg</span>
+        </td>
+        <td>
+            <span>项目</span>
+        </td>
+        <td colspan="3">
+            <span>2分</span>
+        </td>
+        <td colspan="3">
+            <span>1分</span>
+        </td>
+        <td colspan="3">
+            <span>0分</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="7">
+            <span>一般情况:</span>
+            <span id="general"></span>
+        </td>
+        <td colspan="7">
+            <span>神志:</span>
+            <span id="senseSchedule"></span>
+        </td>
+        <td>
+            <span>循环</span>
+        </td>
+        <td colspan="3">
+            <span>毛细血管充盈良好或收缩压≥90mmHg</span>
+        </td>
+        <td colspan="3">
+            <span>毛细血管充盈迟缓或收缩压89~60mmHg</span>
+        </td>
+        <td colspan="3">
+            <span>无毛细血管充盈或收缩压≤59mmHg</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="7">
+            <span>瞳孔左:</span>
+            <span style="display: inline-block" id="leftEye"></span>
+            <span>mm&nbsp;对光:</span>
+            <span id="leftLight"></span>
+        </td>
+        <td colspan="7">
+            <span>右:</span>
+            <span style="display: inline-block" id="rightEye"></span>
+            <span>mm&nbsp;对光:</span>
+            <span id="rightLight"></span>
+        </td>
+        <td>
+            <span>呼吸</span>
+        </td>
+        <td colspan="3">
+            <span>正常</span>
+        </td>
+        <td colspan="3">
+            <span>不正常（费力、浅或呼吸＞35次/min）</span>
+        </td>
+        <td colspan="3">
+            <span>无自主呼吸</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="7">
+            <span>口唇紫绀:</span>
+            <span id="kczg"></span>
+        </td>
+        <td colspan="7">
+            <span>病理反射:</span>
+            <span id="pathologicalReflex"></span>
+        </td>
+        <td>
+            <span>胸腹</span>
+        </td>
+        <td colspan="3">
+            <span>均无触痛</span>
+        </td>
+        <td colspan="3">
+            <span>胸或腹有触痛</span>
+        </td>
+        <td colspan="3">
+            <span>连枷胸、板状腹、血腹</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>头颈:</span>
+            <span id="head"></span>
+        </td>
+        <td>
+            <span>运动</span>
+        </td>
+        <td colspan="3">
+            <span>正常（能按吩咐动作）</span>
+        </td>
+        <td colspan="3">
+            <span>只对疼痛刺激有反应</span>
+        </td>
+        <td colspan="3">
+            <span>无反应或体位固定</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>胸部:</span>
+            <span id="breast"></span>
+        </td>
+        <td>
+            <span>言语</span>
+        </td>
+        <td colspan="3">
+            <span>正常（对答切题）</span>
+        </td>
+        <td colspan="3">
+            <span>言语错乱 语无伦次</span>
+        </td>
+        <td colspan="3">
+            <span>发音听不懂或不能发音</span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>心脏:</span>
+            <span id="heart"></span>
+        </td>
+        <td rowspan="6">
+            <span>处理</span>
+        </td>
+        <td colspan="9" rowspan="6">
+            <span id="cureMeasures"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>肺部:</span>
+            <span id="lung"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>腹部:</span>
+            <span id="abdomen"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>脊柱:</span>
+            <span id="spine"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>四肢:</span>
+            <span id="limb"></span>
+        </td>
+    </tr>
+    <tr align="left">
+        <td colspan="14">
+            <span>其它:</span>
+            <span id="others"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <span>初步诊断:</span>
+            <span id="doctorDiagnosis"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <div style="display: inline-block;width: 30%;">
+                <span>随车医生:</span>
+                <span id="doctor"></span>
+            </div>
+            <div style="display: inline-block;width: 30%;">
+                <span>随车护士:</span>
+                <span id="nurse"></span>
+            </div>
+            <div style="display: inline-block;width: 30%;">
+                <span>司机:</span>
+                <span id="driver"></span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="8">
+            <span>医生签字:</span>
+            <span id="doctorSign"></span>
+        </td>
+        <td colspan="17" align="right">
+            <span style="display: inline-block;width: 50px;"></span>
+            <span>年</span>
+            <span style="display: inline-block;width: 40px;"></span>
+            <span>月</span>
+            <span style="display: inline-block;width: 40px;"></span>
+            <span>日</span>
+            <span style="display: inline-block;width: 40px;"></span>
+            <span>时</span>
+            <span style="display: inline-block;width: 40px;"></span>
+            <span>分</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25">
+            <span style="display: inline-block;float:left;">备注:</span>
+            <span style="display: inline-block;float: right" id="remark"></span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="25" style="border:none" align="right">
+            <span>紧急医疗救援中心监制</span>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
