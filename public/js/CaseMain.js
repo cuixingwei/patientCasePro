@@ -726,6 +726,7 @@ function init() {
                     patientCaseNumber = data.rows.length;
                     patientCaseOrder = data.rows[0].pcOrder;
                     patientCaseID = data.rows[0].ID;
+                    patientsGrid.datagrid('selectRow', 0);//光标指向第一个
                     loadPatientCase(data.rows[0]); //加载病例
                     /*加载病历附表*/
                     loadPatientSchedule();
@@ -772,6 +773,7 @@ function init() {
                 if (data.rows.length > 0) {
                     patientCaseNumber = data.rows.length;
                 }
+                patientsListGrid.datagrid('selectRow', 0);//光标指向第一个
             },
             onClickRow: function (rowIndex, rowData) {
                 patientCaseOrder = rowData.pcOrder;
@@ -818,6 +820,7 @@ function init() {
                     $("#chargeName").combobox('setValue', data.rows[0].id);
                     $("#chargePrice").val(data.rows[0].price);
                     chargeRecordID = data.rows[0].chargeID;
+                    chargeListGrid.datagrid('selectRow', 0);//光标指向第一个
                 }
             },
             onClickRow: function (rowIndex, rowData) {
@@ -881,6 +884,7 @@ function init() {
                     loadNurseDetail(row);
                     nurseRecordID = data.rows[0].nurseRecordID;
                     $("#btn_printNurse").linkbutton('enable');
+                    nurseObserveRecordGrid.datagrid('selectRow', 0);//光标指向第一个
                 } else {
                     loadNurseDetail([]);
                     $("#btn_printNurse").linkbutton('disable');

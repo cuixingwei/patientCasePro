@@ -6,13 +6,6 @@
     <% include ../head.html %>
     <script src="js/CaseMain.js"></script>
     <style>
-        label {
-            width: 100px !important;
-            text-align: right !important;
-            display: inline-block !important;
-            margin-right: 5px !important;
-            color: #000 !important;
-        }
 
         .th {
             width: 24%;
@@ -31,10 +24,107 @@
             display: inline-block
         }
 
-        .input_width {
-            width: 10em;
+        /* 设置了浏览器宽度不小于1201px时 */
+        @media screen and (min-width: 1201px) {
+            .input_width {
+                width: 155px;
+            }
+
+            .input_halt {
+                width: 355px;
+            }
+
+            .input_addr {
+                width: 210px;
+            }
+
+            .input_linkMan {
+                width: 80px;
+            }
+
+            .input_linkPhone {
+                width: 100px;
+            }
+
+            .input_cureMeasure {
+                width: 97%;;
+            }
+
+            .input_heart {
+                width: 80%;;
+            }
+
+            label {
+                width: 100px !important;
+                text-align: right !important;
+                display: inline-block !important;
+                margin-right: 5px !important;
+                color: #000 !important;
+            }
         }
 
+        /* 设置了浏览器宽度不大于1200px时 */
+        @media screen and (max-width: 1200px) {
+            .input_width {
+                width: 100px;
+            }
+
+            .input_halt {
+                width: 280px;
+            }
+
+            .input_addr {
+                width: 180px;
+            }
+
+            .input_linkMan {
+                width: 80px;
+            }
+
+            .input_linkPhone {
+                width: 100px;
+            }
+
+            .input_cureMeasure {
+                width: 97%;;
+            }
+
+            .input_heart {
+                width: 80%;;
+            }
+
+            .th {
+                width: 24%;
+                display: inline-block
+            }
+
+            .th_left {
+                width: 23%;
+                float: left;
+                display: inline-block
+            }
+
+            .th_right {
+                width: 25%;
+                float: right;
+                display: inline-block
+            }
+
+            label {
+                width: 60px !important;
+                text-align: right !important;
+                display: inline-block !important;
+                margin-right: 5px !important;
+                color: #000 !important;
+            }
+        }
+
+        /* 设置了浏览器宽度不大于900px时  */
+        @media screen and (max-width: 900px) {
+            .input_width {
+                width: 80px;
+            }
+        }
 
         .tr_height {
             margin-bottom: 3px;
@@ -201,11 +291,11 @@
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>联系人:</label>
-                                    <input name="linkMan" style="width: 6em;"/>
+                                    <input name="linkMan" class="input_linkMan"/>
                                 </div>
                                 <div style="display: inline-block;">
                                     <label>联系电话:</label>
-                                    <input name="linkPhone" style="width: 11em;"/>
+                                    <input name="linkPhone" class="input_linkPhone"/>
                                 </div>
                                 <div style="display: inline-block;margin-left: 7px;">
                                     <input type="checkbox" name="threeNO" value="1"/> 三无
@@ -214,59 +304,59 @@
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>现场地点:</label>
-                                    <input name="localAddr" style="width: 15em;"/>
+                                    <input name="localAddr" class="input_addr"/>
                                 </div>
                                 <div style="display: inline-block;">
                                     <label>里程:</label>
-                                    <input name="distance" style="width: 6em;"/>
+                                    <input name="distance" style="width: 20px;"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>接车地址:</label>
-                                    <input name="waitAddr" style="width: 30em;"/>
+                                    <input name="waitAddr" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>主诉:</label>
-                                    <input name="chiefComplaint" style="width: 30em;"/>
+                                    <input name="chiefComplaint" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>现病史:</label>
-                                    <input name="presentIllness" style="width: 30em;"/>
+                                    <input name="presentIllness" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>既往病史:</label>
-                                    <input name="pastHistory" style="width: 30em;"/>
+                                    <input name="pastHistory" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>过敏史:</label>
-                                    <input name="allergy" style="width: 30em;"/>
+                                    <input name="allergy" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>诊断:</label>
-                                    <input name="doctorDiagnosis" style="width: 30em;"/>
+                                    <input name="doctorDiagnosis" class="input_halt"/>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>途中变化<br>记录:</label>
-                                    <textarea name="middleChange" rows="2" cols="55"></textarea>
+                                    <textarea name="middleChange" class="input_halt"></textarea>
                                 </div>
                             </div>
                             <div class="tr_height">
                                 <div style="display: inline-block;">
                                     <label>备注:</label>
-                                    <textarea name="remark" rows="2" cols="55"></textarea>
+                                    <textarea name="remark" rows="2" class="input_halt"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -358,15 +448,15 @@
                     <div class="easyui-panel" title="体格检查"
                          collapsible="false" style="padding:5px;width:100%;height:510px;">
                         <div class="tr_height">
-                            <div style="width: 23%;display: inline-block;text-align: right;">
-                                <span style="margin-right: 5px;">血压</span>
+                            <div style="width: 20%;display: inline-block;text-align: right;">
+                                <span style="margin-right: 3px;">血压</span>
                                 <input type="checkbox" onclick="bloodCheckClick(this);" name="noCheck"
-                                       style="margin-right: 5px;"/> 未查
+                                       style="margin-right: 3px;"/> 未查
                             </div>
-                            <div style="width: 23%;display: inline-block">
-                                <input name="BPH" style="width: 40px;" id="BPH"/>
+                            <div style="width: 26%;display: inline-block">
+                                <input name="BPH" style="width: 30px;" id="BPH"/>
                                 <span style="width: 30px;"><b>/</b></span>
-                                <input style="width: 40px;" name="BPL" id="BPL"/>
+                                <input style="width: 30px;" name="BPL" id="BPL"/>
                                 <span>mmHg</span>
                             </div>
                             <div style="width: 23%;display: inline-block;text-align: right">
@@ -382,14 +472,14 @@
                                 <span>呼吸（R)：</span>
                             </div>
                             <div style="width: 23%;display: inline-block">
-                                <input name="R" style="width: 100px;"/>
+                                <input name="R" style="width: 60px;"/>
                                 <span>次/分</span>
                             </div>
                             <div style="width: 23%;display: inline-block;text-align: right;">
                                 <span>体温（T）：</span>
                             </div>
                             <div style="width: 23%;display: inline-block">
-                                <select class="easyui-combobox" name="T" style="width: 100px;"
+                                <select class="easyui-combobox" name="T" style="width: 60px;"
                                         data-options="panelHeight:'auto'">
                                     <option value="未查">未查</option>
                                 </select>
@@ -401,7 +491,7 @@
                                 <span>一般情况：</span>
                             </div>
                             <div style="width: 23%;display: inline-block">
-                                <select class="easyui-combobox" name="general" id="general" style="width: 100px;"
+                                <select class="easyui-combobox" name="general" id="general" style="width: 60px;"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="无">无</option>
                                     <option value="尚可">尚可</option>
@@ -413,7 +503,7 @@
                             </div>
                             <div style="width: 23%;display: inline-block">
                                 <select class="easyui-combobox" name="pathologicalReflex" id="pathologicalReflex"
-                                        style="width: 100px;"
+                                        style="width: 60px;"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="无">无</option>
                                     <option value="有">有</option>
@@ -425,7 +515,7 @@
                                 <span>口唇紫绀：</span>
                             </div>
                             <div style="width: 23%;display: inline-block">
-                                <select class="easyui-combobox" name="kczg" id="kczg" style="width: 100px;"
+                                <select class="easyui-combobox" name="kczg" id="kczg" style="width: 60px;"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="无">无</option>
                                     <option value="有">有</option>
@@ -436,7 +526,7 @@
                             </div>
                             <div style="width: 23%;display: inline-block">
                                 <select class="easyui-combobox" name="senseSchedule" id="senseSchedule"
-                                        style="width: 100px;"
+                                        style="width: 60px;"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="清楚">清楚</option>
                                     <option value="嗜睡">嗜睡</option>
@@ -453,18 +543,18 @@
                                 <span>瞳孔：左</span>
                             </div>
                             <div style="width: 70%;display: inline-block">
-                                <input name="leftEye" style="width: 50px;"/>
+                                <input name="leftEye" style="width: 25px;"/>
                                 <span>(mm)&nbsp;对光</span>
-                                <select class="easyui-combobox" name="leftLight" style="width: 70px;" id="leftLight"
+                                <select class="easyui-combobox" name="leftLight" style="width: 60px;" id="leftLight"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="存在">存在</option>
                                     <option value="消失">消失</option>
                                     <option value="迟钝">迟钝</option>
                                 </select>
                                 <span>右</span>
-                                <input name="rightEye" style="width: 50px;"/>
+                                <input name="rightEye" style="width: 25px;"/>
                                 <span>(mm)&nbsp;对光</span>
-                                <select class="easyui-combobox" name="rightLight" id="rightLight" style="width: 70px;"
+                                <select class="easyui-combobox" name="rightLight" id="rightLight" style="width: 60px;"
                                         data-options="editable:false,panelHeight:'auto'">
                                     <option value="存在">存在</option>
                                     <option value="消失">消失</option>
@@ -474,35 +564,35 @@
                         </div>
                         <div class="tr_height">
                             <label>心脏:</label>
-                            <textarea name="heart" rows="2" cols="60"></textarea>
+                            <textarea name="heart" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>肺部:</label>
-                            <textarea name="lung" rows="2" cols="60"></textarea>
+                            <textarea name="lung" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>头颈:</label>
-                            <textarea name="head" rows="2" cols="60"></textarea>
+                            <textarea name="head" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>胸部:</label>
-                            <textarea name="breast" rows="2" cols="60"></textarea>
+                            <textarea name="breast" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>腹部:</label>
-                            <textarea name="abdomen" rows="2" cols="60"></textarea>
+                            <textarea name="abdomen" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>脊柱:</label>
-                            <textarea name="spine" rows="2" cols="60"></textarea>
+                            <textarea name="spine" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>四肢:</label>
-                            <textarea name="limb" rows="2" cols="60"></textarea>
+                            <textarea name="limb" rows="2" class="input_heart"></textarea>
                         </div>
                         <div class="tr_height">
                             <label>其他:</label>
-                            <textarea name="others" rows="2" cols="60"></textarea>
+                            <textarea name="others" rows="2" class="input_heart"></textarea>
                         </div>
                     </div>
                 </div>
@@ -548,7 +638,7 @@
                 <div style="width: 100%;height: 100px;">
                     <div class="easyui-panel" title="治疗措施" collapsible="false"
                          style="width:100%;height:95px;text-align: center">
-                        <textarea name="cureMeasures" rows="4" cols="149"></textarea>
+                        <textarea name="cureMeasures" rows="4" class="input_cureMeasure"></textarea>
                     </div>
                 </div>
             </form>
@@ -628,7 +718,7 @@
                         <div class="tr_height">
                             <div style="display: inline-block;width: 40%;float: left">
                                 <span style="width: 70px;display: inline-block">瞳孔左&nbsp;&nbsp;大小</span>
-                                <input id="leftSize" name="leftSize" style="width: 100px;"/>
+                                <input id="leftSize" name="leftSize" style="width: 70px;"/>
                                 <span>（mm）</span>
                             </div>
                             <div style="display: inline-block;width: 40%;">
@@ -644,7 +734,7 @@
                         <div class="tr_height">
                             <div style="display: inline-block;width: 40%;float: left">
                                 <span style="width: 70px;display: inline-block">瞳孔右&nbsp;&nbsp;大小</span>
-                                <input id="rightSize" name="rightSize" style="width: 100px;"/>
+                                <input id="rightSize" name="rightSize" style="width: 70px;"/>
                                 <span>（mm）</span>
                             </div>
                             <div style="display: inline-block;width: 40%;">
@@ -691,7 +781,8 @@
                         </div>
                         <div class="easyui-panel" collapsible="false" title="护理措施"
                              style="width:100%;height:80px;text-align: center">
-                            <textarea name="nurseMeasure" id="nurseMeasure" rows="3" cols="92"></textarea>
+                            <textarea name="nurseMeasure" id="nurseMeasure" rows="3"
+                                      class="input_cureMeasure"></textarea>
                         </div>
                     </form>
                     <div style="height: 40px;display: block;margin-top:10px;padding-top: 10px;">
