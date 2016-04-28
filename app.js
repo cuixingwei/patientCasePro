@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: 'xhs ems', // 建议使用 128 个字符的随机字符串
-    cookie: {maxAge: 60 * 60 * 1000},
+    cookie: {maxAge: 3600000},
     resave: false,
     saveUninitialized: true
 }));
