@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <% include ../head.html %>
+    <style>
+        .tr_height {
+            margin-bottom: 3px;
+        }
+
+        .label_1 {
+            text-align: right;
+            display: inline-block;
+            width: 15%;
+            margin-right: 10px;;
+        }
+
+        .input_1 {
+            width: 50%;
+        }
+    </style>
+    <script type="text/javascript">
+        var grid;
+        var operate = 0; //1添加2编辑
+        var personType = '<%= personType %>';
+        var personTypes;//所有人员类型
+        var userID; //所有的工号，用来在添加和修改用户时去重
+        var isRepeat = 0;
+        /*验证所填工号是否系统中已存在*/
+        var reviewRepeat = function (target) {
+            isRepeat = 0;
+            var values = $(target).val().trim();
+            $.each(userID, function (i, data) {
+                if (data.userId == values) {
+                    isRepeat = 1;
+                }
+            });
+
+        };
+        /*修改/添加人员信息后提交*/
+        var submitForm = function (id) {
+            var values = $("#stationAdd").combobox('getText');
+            $("#stationName").val(values);
+            values = $("#departmentCodeAdd").combobox('getText');
+            $("#departmentName").val(values);
+            if ($("#usernameAdd").val() == '' || $("#userIdAdd").val() == '') {
+                $.messager.alert('提示', '姓名和工号不能为空!', 'info');
+            } else {
+                var url = '';
+                if (operate == 1) {
+                    url = 'cases/addPerson?operate=' + operate;
+                    if (isRepeat == 1) {
+                        $.messager.alert('提示', '你所填写的工号系统中已存在，请重新输入!', 'info');
+                        $("#userIdAdd").focus().val('');
+                        return;
+                    }
+                } else if (operate == 2) {
+                    url = 'cases/editPerson?operate=' + operate + '&id=' + id;
+                }
+                $.post(url, cxw.serializeObject($('#personForm')), function (success) {
+                    if (!success) {
+                        if (operate == 1) {
+                            $.messager.alert('提示', '添加失败!', 'info');
+                        } else {
+                            $.messager.alert('提示', '修改失败!', 'info');
+                        }
+                    } else {
+                        if (operate == 1) {
+                            $.messager.alert('提示', '添加成功!', 'info');
+                        } else {
+                            $.messager.alert('提示', '修改成功!', 'info');
+                        }
+                        grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                        $('#person_window').dialog('close');
+                    }
+                });
+            }
+        };
+        /*添加人员*/
+        var addFun = function () {
+            operate = 1;
+            $('#person_window').show().dialog({
+                width: 500,
+                height: 350,
+                title: '[添加/修改]人员信息',
+                modal: true,
+                closable: true,
+                buttons: [{
+                    text: '保存',
+                    handler: function () {
+                        submitForm();
+                    }
+                }, {
+                    text: '返回',
+                    handler: function () {
+                        $('#person_window').dialog('close');
+                    }
+                }],
+                onOpen: function () {
+                    //获取工号列表
+                    $.post('/cases/getPersons', function (data) {
+                        userID = data.rows;
+                    });
+                }
+            });
+        };
+        /*编辑人员*/
+        var editFun = function (ID) {
+            operate = 2;
+            $('#person_window').show().dialog({
+                width: 500,
+                height: 350,
+                title: '[添加/修改]人员信息',
+                modal: true,
+                closable: true,
+                buttons: [{
+                    text: '保存',
+                    handler: function () {
+                        submitForm(ID);
+                    }
+                }, {
+                    text: '返回',
+                    handler: function () {
+                        $('#person_window').dialog('close');
+                    }
+                }],
+                onOpen: function () {
+                    //获取工号列表
+                    $.post('/cases/getPersons', function (data) {
+                        userID = data.rows;
+                    });
+                    var url = '/cases/getPersonById?id=' + ID;
+                    $.post(url, function (data) {
+                        if (data.length > 0) {
+                            data = data[0];
+                            $("#personForm").form('load', {
+                                "station": data.stationCode,
+                                "userId": data.userId,
+                                "username": data.username,
+                                "password": data.password,
+                                "personTypeCode": data.personTypeCode,
+                                "flag": data.flag,
+                                "departmentCode": data.departmentCode,
+                                "driverCode": data.driverCode
+                            });
+                        }
+                    });
+
+                }
+            });
+        };
+
+        /*审核人员*/
+        var reviewFun = function (ID) {
+            $.messager.confirm('确认', '确定要通过添加人员的审核吗?', function (r) {
+                if (r) {
+                    var url = '/cases/reviewPerson?id=' + ID;
+                    $.post(url, function (data) {
+                        if (data) {
+                            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                            $.messager.alert('提示', '审核通过!', 'info');
+                        } else {
+                            $.messager.alert('提示', '审核失败，请稍后重试!', 'info');
+                        }
+                    });
+                }
+            });
+        };
+
+
+        /* 初始化页面标签 */
+        function init() {
+
+            /*科室编码*/
+            $('#departmentCode').combobox({
+                url: '/dictionary/getDDepartment?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                panelHeight: 'auto',
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#departmentCode').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            $('#departmentCodeAdd').combobox({
+                url: '/dictionary/getDDepartment?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                panelHeight: 'auto',
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#departmentCodeAdd').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            /*人员类型编码*/
+            $('#personType').combobox({
+                url: '/dictionary/getPersonType?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                panelHeight: 'auto',
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#personType').combobox('setValue', data[0].id);
+                    }
+                    var str = '';
+                    $.each(data, function (i, db) {
+                        console.log('i:' + i + ';' + db.id + ';' + db.name);
+                        if (db.name != '--请选择--') {
+                            console.log('i2:' + i + ';' + db.id + ';' + db.name);
+                            str += '<input type="radio"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                            if (i % 4 == 0) {
+                                str += '<br/>';
+                            }
+                        }
+                    });
+                    $("#personTypeDiv").empty().append(str);
+                }
+            });
+
+
+            /*分站编码*/
+            $('#station').combobox({
+                url: '/dictionary/getStations?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#station').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            $('#stationAdd').combobox({
+                url: '/dictionary/getStations',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#stationAdd').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            grid = $('#grid').datagrid(
+                    {
+                        url: '/cases/getPersons',
+                        pagePosition: 'bottom',
+                        pagination: true,
+                        striped: true,
+                        singleSelect: true,
+                        fitColumns: true,
+                        nowrap: false,
+                        rownumbers: true,
+                        pageSize: 20,
+                        pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                        columns: [[{
+                            field: 'username',
+                            title: '姓名',
+                            width: "10%",
+                            align: 'center'
+                        }, {
+                            field: 'userId',
+                            title: '工号',
+                            width: "10%",
+                            align: 'center'
+                        }, {
+                            field: 'personType',
+                            title: '人员类型',
+                            width: "10%",
+                            align: 'center'
+                        }, {
+                            field: 'driverCode',
+                            title: '驾驶证编码',
+                            width: "11%",
+                            align: 'center'
+                        }, {
+                            field: 'station',
+                            title: '分站名称',
+                            width: "12%",
+                            align: 'center'
+                        }, {
+                            field: 'flag',
+                            title: '启用',
+                            width: "10%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (value == 1) {
+                                    return '<img  src="/images/YES.gif"    style = "vertical-align: middle;" > ';
+                                } else {
+                                    return '<img  src="/images/NO.gif"    style = "vertical-align: middle;" > ';
+                                }
+                            }
+                        }, {
+                            field: 'online',
+                            title: '上班状态',
+                            width: "10%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (value == 1) {
+                                    return '已上班';
+                                } else {
+                                    return '未上班';
+                                }
+                            }
+                        }, {
+                            field: 'alter',
+                            title: '编辑',
+                            width: "10%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                return cxw
+                                        .formatString(
+                                        '<button type="button" onclick="editFun(\'{0}\')">{1}</button>',
+                                        row.id, '编辑');
+                            }
+                        }, {
+                            field: 'valid',
+                            title: '审核状态',
+                            width: "10%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (value == 1) {
+                                    return '<img  src="/images/YES.gif"    style = "vertical-align: middle;" > ';
+                                } else {
+                                    return cxw.formatString('<button type="button" onclick="reviewFun(\'{0}\')">{1}</button>', row.id, '审核');
+                                }
+                            }
+                        }]],
+                        toolbar: '#toolbar'
+                    });
+        }
+
+        $(document).ready(function () {
+            init();
+            if (!(personType == 2 || personType == 11)) {
+                $("#grid").datagrid('hideColumn', 'valid');
+            }
+            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+        });
+    </script>
+</head>
+<body class="easyui-layout" data-options="fit:true,border:false">
+<div id="toolbar" style="height: 60px;">
+    <form id="searchForm">
+        <div class="tr_height">
+            <div style="width: 24%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">姓名:</label>
+                <input name="username" style="width: 50%;"/>
+            </div>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">工号:</label>
+                <input name="userId" style="width: 50%;"/>
+            </div>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">人员类型:</label>
+                <input style="width: 50%" name="personType" id="personType"/>
+            </div>
+            <div style="width: 24%;display: inline-block;text-align: center">
+                <a href="javascript:void(0);" class="easyui-linkbutton"
+                   style="text-align: right;display: inline-block;"
+                   data-options="iconCls:'ext-icon-zoom',plain:true"
+                   onclick="grid.datagrid('load', cxw.serializeObject($('#searchForm')));">查询</a>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 24%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">启用状态:</label>
+                <select class="easyui-combobox" name="flag" style="width: 50%"
+                        data-options="editable:false,panelHeight:'auto'">
+                    <option value="">--请选择--</option>
+                    <option value="1">启动</option>
+                    <option value="0">未启用</option>
+                </select>
+            </div>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
+                <input style="width: 50%" id="station" name="station"/>
+            </div>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">科室:</label>
+                <input style="width: 50%" id="departmentCode" name="departmentCode"/>
+            </div>
+            <div style="width: 24%;display: inline-block;text-align: center" onclick="addFun();">
+                <img alt="新增人员" src="/images/plus.png"
+                     style="vertical-align: middle;"> <span
+                    style="vertical-align: middle;">新增人员</span>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div data-options="region:'center',fit:true,border:false">
+    <table id="grid" data-options="fit:true,border:false"></table>
+</div>
+<div id="person_window" style="display: none;padding: 10px;">
+    <form id="personForm">
+        <div id="personDiv">
+            <div class="tr_height">
+                <label class="label_1">单位名称:</label>
+                <input id="stationAdd" name="station" style="width: 50%;"/>
+                <input id="stationName" name="stationName" type="hidden">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">人员类型:</label>
+
+                <div style="display: inline-block" id="personTypeDiv">
+                </div>
+            </div>
+            <div class="tr_height">
+                <label class="label_1">科室:</label>
+                <input id="departmentCodeAdd" name="departmentCode" style="width: 50%;"/>
+                <input type="hidden" id="departmentName" name="departmentName">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">姓名:</label>
+                <input id="usernameAdd" name="username" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">工号:</label>
+                <input name="userId" id="userIdAdd" class="input_1" onchange="reviewRepeat(this);">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">密码:</label>
+                <input name="password" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">启用标志:</label>
+                <input type="radio" value="1" name="flag" checked="checked">启用
+                <input type="radio" value="0" name="flag">禁用
+            </div>
+            <div class="tr_height">
+                <label class="label_1">驾驶证编码:</label>
+                <input name="driverCode" class="input_1">
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

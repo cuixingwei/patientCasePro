@@ -25,28 +25,21 @@ router.get('/printPatientCase', function (req, res, next) {
     res.render('case/printPatientCase', {
         title: '打印病历页面',
         taskCode: req.query.taskCode,
-        taskOrder: req.query.taskOrder,
-        patientCaseOrder: req.query.patientCaseOrder
+        carIdentification: req.query.carIdentification,
+        patientCaseOrder: req.query.patientCaseOrder,
+        taskOrder: req.query.taskOrder
     });
 });
 
-/**
- * 跳转打印护理观察记录
- */
-router.get('/printNurseRecord', function (req, res, next) {
-    console.log('跳转打印护理观察记录');
-    res.render('case/printNurseRecord', {
-        title: '打印护理观察记录',
-        taskCode: req.query.taskCode,
-        taskOrder: req.query.taskOrder,
-        patientCaseOrder: req.query.patientCaseOrder
-    });
-});
 
 /*登录成功后跳转到主页面*/
 router.get('/main', function (req, res, next) {
     if (!string.isBlankOrEmpty(req.session.username)) {
-        res.render('main', {title: '主页面', username: req.session.username, center: req.session.center});
+        res.render('main', {
+            title: '主页面',
+            username: req.session.username,
+            center: req.session.center
+        });
     } else {
         res.render('login', {});
     }
@@ -91,21 +84,77 @@ router.post('/changePwd', function (req, res, next) {
 
 /*获取菜单*/
 router.get('/menu', function (req, res, next) {
-    res.json(menu);
+    var role_id = req.session.personType; //人员类型
+    var sql = 'select * from ausp120.tb_Resourse where (ID in (select Resourse_ID from ausp120.tb_Role_Resourse where Role_ID=@role_id) ' +
+        '    or Resourse_ID in (select Resourse_ID from ausp120.tb_Role_Resourse where Role_ID=@role_id)) and flag=1';
+    var sqlData = {
+        statement: sql,
+        params: [{"name": "role_id", "value": role_id, "type": "varchar"}]
+    };
+    db.select(sqlData, function (err, results) {
+        if (err) {
+            console.log(results);
+        } else {
+            var result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "iconCls": results[i][2].value,
+                    "text": results[i][3].value,
+                    "target": results[i][5].value,
+                    "url": results[i][7].value,
+                    "pid": results[i][8].value,
+                    "flag": results[i][9].value
+                });
+            }
+            res.json(result);
+        }
+    });
+    //res.json(menu);
 });
 
 
-/*历史事件*/
+/*病历填写*/
 router.get('/HistoryEvent', function (req, res, next) {
-    res.render('case/HistoryEvent', {title: ''});
+    res.render('case/HistoryEvent', {
+        stationCode: req.session.stationCode
+    });
+});
+/*病历管理*/
+router.get('/PatientCaseManage', function (req, res, next) {
+    res.render('case/PatientCaseManage', {
+        stationCode: req.session.stationCode
+    });
+});
+/*人员管理*/
+router.get('/PersonManage', function (req, res, next) {
+    res.render('case/PersonManage', {personType: req.session.personType});
 });
 
-/*院前急救病历主页面*/
-router.get('/CaseMain', function (req, res, next) {
-    var taskCode = req.query.taskCode;
-    var taskOrder = req.query.taskOrder;
-    res.render('case/CaseMain', {title: '院前急救病历', taskCode: taskCode, taskOrder: taskOrder});
+/*病历详情页*/
+router.get('/patientCaseDetail', function (req, res, next) {
+    var title = '';
+    if (string.isEquals('add', req.query.page)) {
+        title = '新增患者信息';
+    }
+    if (string.isEquals('view', req.query.page)) {
+        title = '查看患者信息';
+    }
+    if (string.isEquals('edit', req.query.page)) {
+        title = '编辑患者信息';
+    }
+    res.render('case/patientCaseDetail', {
+        taskCode: req.query.taskCode,
+        page: req.query.page,
+        caseNumbers: req.query.caseNumbers,
+        title: title,
+        carIdentification: req.query.carIdentification,
+        username: req.session.username,
+        pcOrder: req.query.pcOrder,
+        taskOrder: req.query.taskOrder
+    });
 });
+
 
 /*振铃到接听大于X秒页面*/
 router.get('/RingToAnswerTimes', function (req, res, next) {

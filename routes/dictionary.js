@@ -12,16 +12,61 @@ var qb = {
     id: 'qb',
     name: '全部'
 };
+var defaultQb = {
+    "id": '',
+    "name": '--请选择--'
+};
 
 /*返回人员列表*/
 router.get('/getDispatcher', function (req, res, next) {
-
+    var sqlData = {
+        statement: " select 工号,姓名 from ausp120.tb_MrUser where 人员类型=0 and 有效标志=1  ",
+        params: []
+    };
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            result.unshift(defaultQb);
+            res.json(result);
+        }
+    });
 });
 
 /*返回急救措施字典表*/
 router.get('/getDCureMeasure', function (req, res, next) {
     var sqlData = {
         statement: " select Code,NameM from AuSp120.tb_DMeasure  ",
+        params: []
+    };
+
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            res.json(result);
+        }
+    });
+});
+
+/*返回用药字典表*/
+router.get('/getDMedication', function (req, res, next) {
+    var sqlData = {
+        statement: " select Code,NameM from AuSp120.tb_DMedicine  ",
         params: []
     };
 
@@ -64,6 +109,32 @@ router.get('/getDAge', function (req, res, next) {
     });
 });
 
+/*返回人员类型*/
+router.get('/getPersonType', function (req, res, next) {
+    var sqlData = {
+        statement: " select Code,NameM from AuSp120.tb_DPersonType  ",
+        params: []
+    };
+
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            if (string.isEquals('qb', req.query.type)) {
+                result.unshift(defaultQb);
+            }
+            res.json(result);
+        }
+    });
+});
+
 /*返回疾病科别字典表*/
 router.get('/getDDiseaseClass', function (req, res, next) {
     var sqlData = {
@@ -82,33 +153,12 @@ router.get('/getDDiseaseClass', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
 });
 
-/*返回出诊医院字典表*/
-router.get('/getDHospitalTriage', function (req, res, next) {
-    var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DHospitalTriage  ",
-        params: []
-    };
-
-    db.select(sqlData, function (error, results) {
-        if (error) {
-            console.log(error.message);
-        } else {
-            result = [];
-            for (var i = 0; i < results.length; i++) {
-                result.push({
-                    "id": results[i][1].value,
-                    "name": results[i][1].value
-                });
-            }
-            res.json(result);
-        }
-    });
-});
 
 /*返回科室字典表*/
 router.get('/getDDepartment', function (req, res, next) {
@@ -127,6 +177,9 @@ router.get('/getDDepartment', function (req, res, next) {
                     "id": results[i][0].value,
                     "name": results[i][1].value
                 });
+            }
+            if (string.isEquals('qb', req.query.type)) {
+                result.unshift(defaultQb);
             }
             res.json(result);
         }
@@ -151,15 +204,17 @@ router.get('/getDOutCome', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
 });
 
-/*返回送达地点字典表*/
-router.get('/getDHospitalSend', function (req, res, next) {
+
+/*返回职业字典表*/
+router.get('/getDProfession', function (req, res, next) {
     var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DHospitalSend  ",
+        statement: " select Code,NameM from AuSp120.tb_DProfession  ",
         params: []
     };
 
@@ -170,7 +225,30 @@ router.get('/getDHospitalSend', function (req, res, next) {
             result = [];
             for (var i = 0; i < results.length; i++) {
                 result.push({
-                    "id": results[i][1].value,
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            result.unshift(defaultQb);
+            res.json(result);
+        }
+    });
+});
+/*现场地点类型*/
+router.get('/getDLocaleType', function (req, res, next) {
+    var sqlData = {
+        statement: " select Code,NameM from ausp120.tb_DLocaleType  ",
+        params: []
+    };
+
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
                     "name": results[i][1].value
                 });
             }
@@ -179,10 +257,10 @@ router.get('/getDHospitalSend', function (req, res, next) {
     });
 });
 
-/*返回职业字典表*/
-router.get('/getDProfession', function (req, res, next) {
+/*送往地点类型*/
+router.get('/getDTakenPlaceType', function (req, res, next) {
     var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DProfession  ",
+        statement: " select Code,NameM from ausp120.tb_DTakenPlaceType  ",
         params: []
     };
 
@@ -220,6 +298,7 @@ router.get('/getDIdentity', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -243,6 +322,7 @@ router.get('/getDResult', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -266,6 +346,7 @@ router.get('/getDCooperate', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -285,7 +366,7 @@ router.get('/getDFolk', function (req, res, next) {
             result = [];
             for (var i = 0; i < results.length; i++) {
                 result.push({
-                    "id": results[i][1].value,
+                    "id": results[i][0].value,
                     "name": results[i][1].value
                 });
             }
@@ -312,6 +393,7 @@ router.get('/getDILLState', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -335,10 +417,12 @@ router.get('/getDDeathProve', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
 });
+
 
 /*返回收费项字典表*/
 router.get('/getDChargeXMCode', function (req, res, next) {
@@ -381,6 +465,7 @@ router.get('/getDDiseaseClassState', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -411,18 +496,21 @@ router.get('/getDDiseaseReason', function (req, res, next) {
 
 /*返回分站人员*/
 router.get('/getPerson', function (req, res, next) {
-    var personType = req.query.personType; //1医生，2护士，3司机
+    var personType = req.query.personType; //7医生，8护士，6司机
     var station_id = req.session.stationCode;
-    if (string.isBlankOrEmpty(station_id)) {
-        station_id = config.stationCode;
-    }
-    var sqlData = {
-        statement: "select 编码,姓名 from AuSp120.tb_Person where 人员类型编码=@personType and 所属分站编码=@station_id ",
-        params: [{"name": "personType", "value": personType, "type": "tinyint"}, {
+    var sql = 'select 工号,姓名 from AuSp120.tb_MrUser where 人员类型=@personType and 有效标志=1 and Flag=1 ';
+    var params = [{"name": "personType", "value": personType, "type": "tinyint"}];
+    if (!string.isBlankOrEmpty(station_id) && !string.isEquals('101', station_id)) {
+        sql += ' and 单位编码=@station_id';
+        params.push({
             "name": "station_id",
             "value": station_id,
             "type": "varchar"
-        }]
+        });
+    }
+    var sqlData = {
+        statement: sql,
+        params: params
     };
 
     db.select(sqlData, function (error, results) {
@@ -436,6 +524,7 @@ router.get('/getPerson', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            result.unshift(defaultQb);
             res.json(result);
         }
     });
@@ -459,6 +548,9 @@ router.get('/getStations', function (req, res, next) {
                     "name": results[i][1].value
                 });
             }
+            if (string.isEquals('qb', req.query.type)) {
+                result.unshift(defaultQb);
+            }
             res.json(result);
         }
     });
@@ -466,20 +558,23 @@ router.get('/getStations', function (req, res, next) {
 
 /*返回车辆列表*/
 router.get('/getCars', function (req, res, next) {
-    var station_id = req.session.stationCode;
-    if (string.isBlankOrEmpty(station_id) || string.isEquals('1',req.session.personType)) {
-        station_id = config.stationCode;
-    }
+    var stationCode = req.session.stationCode;
+    var station_id = req.query.station_id;
     var sqlData;
-    if (string.isEquals("999", station_id) || string.isBlankOrEmpty(station_id)) {
+    if (!string.isBlankOrEmpty(station_id) && !string.isEquals('qb', station_id)) {
         sqlData = {
-            statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance ",
-            params: []
+            statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance  where 分站编码=@station_id",
+            params: [{"name": "station_id", "value": station_id, "type": "varchar"}]
+        };
+    } else if (!string.isBlankOrEmpty(stationCode)) {
+        sqlData = {
+            statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance where 分站编码=@station_id ",
+            params: [{"name": "station_id", "value": stationCode, "type": "varchar"}]
         };
     } else {
         sqlData = {
-            statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance where 分站编码=@station_id ",
-            params: [{"name": "station_id", "value": station_id, "type": "varchar"}]
+            statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance  ",
+            params: []
         };
     }
 

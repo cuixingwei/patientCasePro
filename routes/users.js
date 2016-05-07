@@ -12,7 +12,7 @@ router.post('/login', function (req, res, next) {
     var userId = req.body.userId;
     var password = req.body.password;
     var sqlData = {
-        statement: "select 工号,姓名,密码,部门名称,单位编码,人员类型 from AuSp120.tb_MrUser where 工号=@userId",
+        statement: "select 工号,姓名,密码,部门名称,单位编码,人员类型 from AuSp120.tb_MrUser where 有效标志=1 and 工号=@userId",
         params: [{"name":"userId","value":userId,"type":"varchar"}]
     };
     db.select(sqlData, function (error, results) {
@@ -30,7 +30,7 @@ router.post('/login', function (req, res, next) {
             } else {
                 var temp = results[0];
                 if (temp[2].value == password) {
-                    if (!(temp[5].value == 1 || temp[5].value == 3 || temp[5].value == 5)) {
+                    if (temp[5].value == 6 || temp[5].value == 8 || temp[5].value == 9 || temp[5].value == 10) {
                         res.json({
                             success: false,
                             msg: "noPermission"

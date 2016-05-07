@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <% include ../head.html %>
+    <style>
+        .tr_height {
+            margin-bottom: 3px;
+        }
+    </style>
+    <script src="lib/easyui/datagrid-detailview.js"></script>
+    <script type="text/javascript">
+        var grid;
+        var chargeListGrid;
+        var addChargeFlag = 0; //添加收费记录标志
+        var chargeRecordID = -1;
+        var chargeNumbers = 0;
+        var carIdentification, taskCode, pcOrder, taskOrder;
+        /*查看病历*/
+        var viewFun = function (taskCode, pcOrder, carIdentification) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder;
+            window.open(url);
+        };
+        /*打印病历*/
+        var printFun = function (taskCode, pcOrder, carIdentification, taskOrder) {
+            var url = "/printPatientCase?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&patientCaseOrder=' + pcOrder + '&taskOrder=' + taskOrder;
+            window.open(url);
+        };
+        /*收费*/
+        var addFeeFun = function (tc, po, ci) {
+            carIdentification = ci;
+            taskCode = tc;
+            pcOrder = po;
+            $('#charge_window').dialog('open');
+        };
+
+        /*添加收费项*/
+        var addCharge = function () {
+            var data = $('#chargeName').combobox('getData');
+            if (data.length > 0) {
+                $('#chargeName').combobox('setValue', data[0].id);
+            }
+            $("#chargePrice").numberbox({value: 0});
+            addChargeFlag = 1;
+        };
+        /*保存收费项*/
+        var saveCharge = function () {
+            if (addChargeFlag == 1) {
+                $.post('/cases/addCharge', {
+                    "taskCode": taskCode,
+                    "carIdentification": carIdentification,
+                    "patientCaseOrder": pcOrder,
+                    "totalMoney": $("#totalMoney").html(),
+                    "chargeNumbers": chargeNumbers,
+                    "chargeCode": $("#chargeName").combobox('getValue'),
+                    "chargePrice": $("#chargePrice").numberbox('getValue')
+                }, function (data) {
+                    if (data.flag == 1) {
+                        /*加载收费信息列表*/
+                        chargeListGrid.datagrid('load', {
+                            taskCode: taskCode,
+                            carIdentification: carIdentification,
+                            patientCaseOrder: pcOrder
+                        });
+                        addChargeFlag = 0;
+                        grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                    } else if (data.flag == 2) {
+                        $.messager.alert('提示', '添加收费项失败!', 'info');
+                    } else {
+                        $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                            window.location.href = "/";
+                        });
+                    }
+                });
+            }
+        };
+        /*删除收费*/
+        var deleteCharge = function () {
+            if (chargeRecordID == -1) {
+                $.messager.alert('提示', '请选择你要删除的记录!', 'info');
+            } else {
+                $.messager.alert('警告', '你确定要删除该条记录嘛!', 'info', function (r) {
+                    $.post('/cases/deleteCharge', {
+                        "chargeRecordID": chargeRecordID,
+                        "taskCode": taskCode,
+                        "carIdentification": carIdentification,
+                        "patientCaseOrder": pcOrder,
+                        "totalMoney": $("#totalMoney").html(),
+                        "chargeNumbers": chargeNumbers,
+                        "chargePrice": $("#chargePrice").numberbox('getValue')
+                    }, function (data) {
+                        if (data.success) {
+                            /*加载收费信息列表*/
+                            chargeListGrid.datagrid('load', {
+                                taskCode: taskCode,
+                                carIdentification: carIdentification,
+                                patientCaseOrder: pcOrder
+                            });
+                            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                        } else {
+                            $.messager.alert('提示', '删除收费项失败!', 'info');
+                            chargeRecordID = -1;
+                        }
+                    });
+                });
+            }
+        };
+
+        /* 初始化页面标签 */
+        function init() {
+            /*收费对话框初始化*/
+            $('#charge_window').show().dialog({
+                modal: true,
+                closable: true,
+                buttons: [{
+                    text: '关闭',
+                    left: true,
+                    handler: function () {
+                        $('#charge_window').dialog('close');
+                    }
+                }],
+                onOpen: function () {
+                    /*收费列表*/
+                    chargeListGrid = $('#chargeList').datagrid(
+                            {
+                                url: '/cases/getChargeByID?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&patientCaseOrder=' + pcOrder,
+                                pagePosition: 'bottom',
+                                pagination: true,
+                                striped: true,
+                                singleSelect: true,
+                                rownumbers: true,
+                                idField: 'acceptTime',
+                                pageSize: 20,
+                                pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                                columns: [[{
+                                    field: 'name',
+                                    title: '收费项',
+                                    width: "30%",
+                                    align: 'center'
+                                }, {
+                                    field: 'price',
+                                    title: '金额',
+                                    width: "55%",
+                                    align: 'center'
+                                }]],
+                                onLoadSuccess: function (data) {
+                                    if (data.rows.length > 0) {
+                                        $("#totalMoney").html(data.totalMoney);
+                                        $("#chargeName").combobox('setValue', data.rows[0].id);
+                                        $("#chargePrice").numberbox('setValue', data.rows[0].price);
+                                        chargeNumbers = data.rows.length;
+                                        chargeRecordID = data.rows[0].chargeID;
+                                        chargeListGrid.datagrid('selectRow', 0);//光标指向第一个
+                                    } else {
+                                        chargeRecordID = -1;
+                                        $("#totalMoney").html(0);
+                                        $("#chargeName").combobox('setValue', 1);
+                                        $("#chargePrice").numberbox('setValue', '0');
+                                    }
+                                },
+                                onClickRow: function (rowIndex, rowData) {
+                                    $("#chargeName").combobox('setValue', rowData.id);
+                                    $("#chargePrice").numberbox('setValue', rowData.price);
+                                    addChargeFlag = 0;
+                                    chargeRecordID = rowData.chargeID;
+                                }
+                            });
+                }
+            }).dialog('close');
+
+            $('#startTime').datetimebox({
+                required: true,
+                value: firstOfMouth()
+            });
+            $('#endTime').datetimebox({
+                value: getCurrentTime()
+            });
+            /*病情*/
+            $('#illnessCode').combobox({
+                url: '/dictionary/getDILLState',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#getDILLState').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            /*分站编码*/
+            $('#station').combobox({
+                url: '/dictionary/getStations?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#station').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            /*救治结果*/
+            $('#treatResultCode').combobox({
+                url: '/dictionary/getDResult',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                panelHeight: 'auto',
+                editable: false
+            });
+            /*收费项字典表*/
+            $('#chargeName').combobox({
+                url: '/dictionary/getDChargeXMCode',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                panelHeight: 'auto',
+                editable: false
+            });
+
+            grid = $('#grid').datagrid(
+                    {
+                        url: '/cases/getPatientCases?type=grid',
+                        pagePosition: 'bottom',
+                        pagination: true,
+                        striped: true,
+                        singleSelect: true,
+                        fitColumns: true,
+                        nowrap: false,
+                        rownumbers: true,
+                        pageSize: 20,
+                        pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                        columns: [[{
+                            field: 'acceptStartTime',
+                            title: '呼救时刻',
+                            width: "13%",
+                            align: 'center'
+                        }, {
+                            field: 'patientName',
+                            title: '姓名',
+                            width: "5%",
+                            align: 'center',
+                            sortable: true
+                        }, {
+                            field: 'sex',
+                            title: '性别',
+                            width: "5%",
+                            align: 'center'
+                        }, {
+                            field: 'age',
+                            title: '年龄',
+                            width: "5%",
+                            align: 'center'
+                        }, {
+                            field: 'doctorDiagnosis',
+                            title: '初步诊断',
+                            width: "15%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'illness',
+                            title: '病情',
+                            width: "4%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'station',
+                            title: '分站',
+                            width: "7%",
+                            align: 'center'
+                        }, {
+                            field: 'treatResult',
+                            title: '救治结果',
+                            width: "6%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'driver',
+                            title: '司机',
+                            width: "5%",
+                            align: 'center'
+                        }, {
+                            field: 'doctor',
+                            title: '医生',
+                            width: "5%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'nurse',
+                            title: '护士',
+                            width: "5%",
+                            align: 'center'
+                        }, {
+                            field: 'charge',
+                            title: '费用',
+                            width: "5%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (value) {
+                                    return value;
+                                } else {
+                                    return '0.00';
+                                }
+                            }
+                        }, {
+                            field: 'chargeFlag',
+                            title: '收费标志',
+                            width: "5%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                if (value) {
+                                    return '已收';
+                                } else {
+                                    return '未收';
+                                }
+                            }
+                        }, {
+                            field: 'fee',
+                            title: '收费',
+                            width: "6%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                return cxw.formatString('<button type="button" onclick="addFeeFun(\'{0}\',\'{1}\',\'{2}\')">收费</button> ', row.taskCode, row.pcOrder, row.carIdentification);
+                            }
+                        }, {
+                            field: 'view',
+                            title: '查看',
+                            width: "4%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                return cxw.formatString('<img  onclick="viewFun(\'{0}\',\'{1}\',\'{2}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/>', row.taskCode, row.pcOrder, row.carIdentification);
+                            }
+                        }, {
+                            field: 'print',
+                            title: '打印',
+                            width: "4%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                return cxw.formatString('<img  onclick="printFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/printer/printer.png"/>', row.taskCode, row.pcOrder, row.carIdentification, row.taskOrder);
+                            }
+                        }]],
+                        toolbar: '#toolbar',
+                        onBeforeLoad: function (param) {
+                            var varify = cxw.checkStartTimeBeforeEndTime(
+                                    '#startTime', '#endTime');
+                            if (!varify) {
+                                parent.$.messager.alert('警告', '结束时间要大于开始时间', 'warning');
+                            }
+                        }
+                    });
+        }
+
+        $(document).ready(function () {
+            init();
+            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+        });
+    </script>
+</head>
+<body class="easyui-layout" data-options="fit:true,border:false">
+<div id="toolbar" style="height: 80px;">
+    <form id="searchForm">
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
+                <input id="startTime" name="startTime" style="width: 50%;"/>
+            </div>
+            <div style="width: 33%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
+                <input id="endTime" name="endTime" style="width: 50%;"/>
+            </div>
+            <div style="width: 33%;display: inline-block;text-align: center">
+                <a href="javascript:void(0);" class="easyui-linkbutton"
+                   style="text-align: right;display: inline-block;"
+                   data-options="iconCls:'ext-icon-zoom',plain:true"
+                   onclick="grid.datagrid('load', cxw.serializeObject($('#searchForm')));">查询</a>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">患者姓名:</label>
+                <input style="width: 50%" name="patientName"/>
+            </div>
+            <div style="width: 33%;display: inline-block;" id="stationDiv">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病情:</label>
+                <input style="width: 50%" id="illnessCode" name="illnessCode"/>
+            </div>
+            <div style="width: 33%;display: inline-block;float:right">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
+                <input style="width: 50%" id="station" name="station"/>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 33%;display: inline-block;float: left">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">救治结果:</label>
+                <input style="width: 50%" id="treatResultCode" name="treatResultCode"/>
+            </div>
+            <div style="width: 66%;float: left;display: inline-block;">
+                <label style="width: 15%;text-align: right;display: inline-block;margin-right: 5px;">送往地点:</label>
+                <input style="width: 75%" name="toAddr"/>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div data-options="region:'center',fit:true,border:false">
+    <table id="grid" data-options="fit:true,border:false"></table>
+</div>
+<div id="charge_window" title="收费" style="width:600px;height:320px;display: none;"
+     data-options="modal:true">
+    <form>
+        <div id="medicationRecordDiv" style="padding: 5px;">
+            <div class="easyui-panel" collapsible="false"
+                 style="width:100%;height:180px;text-align: center">
+                <table id="chargeList" data-options="fit:true,border:false"></table>
+            </div>
+            <div style="width:100%;height:50px;text-align: center">
+                <div style="height: 25px;display: block;margin-top:5px;">
+                    <span>收费项</span>
+                    <input id="chargeName" name="chargeName" style="width: 150px;"/>
+                    <span>金额</span>
+                    <input id="chargePrice" name="chargePrice" style="width: 70px;" class="easyui-numberbox"
+                           data-options="min:0,precision:2"/>
+                    <span style="float: right;margin-right: 20px;">
+                        <span>合计金额：</span>
+                        <span style="color: red" id="totalMoney">0</span>
+                    </span>
+                </div>
+                <div style="height: 25px;display: block;margin-top:5px;">
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
+                               onclick="javascript:addCharge();">添加</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
+                               onclick="javascript:saveCharge();">保存</a>
+                        </span>
+                         <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
+                               onclick="javascript:deleteCharge();">删除</a>
+                        </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

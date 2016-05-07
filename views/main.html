@@ -5,6 +5,11 @@
     <title><%= title %></title>
     <% include head.html%>
     <link rel='stylesheet' href='/stylesheets/header.css'/>
+    <style>
+        .none {
+            display: none;
+        }
+    </style>
     <script>
         var mainTabs;
         function toggleTab(target) {
@@ -81,10 +86,9 @@
 
             $.get("/menu", function (data) {
                 $.each(data, function (i, m) {
-                    if (m.attributes.url == "" && m.flag == "0") {//添加一级菜单
+                    if ((m.url == "" || m.url == null) && m.flag == "1") {//添加一级菜单
                         titleArray.push(m.id);
-                        //var tempOpen = i == 0 ? true : false;//设置第一个菜单展开
-                        var tempOpen = m.id == 2 ? true : false;//设置第一个菜单展开
+                        var tempOpen = m.id == 'bingli' ? true : false;//设置第一个菜单展开
                         $('#menu_left').accordion('add', {
                             title: m.text,
                             selected: tempOpen,
@@ -96,10 +100,10 @@
 
                 $.each(titleArray, function (i, m) {
                     $.each(data, function (j, n) {
-                        if (n.pid == titleArray[i] && n.flag == "0") {
+                        if (n.pid == titleArray[i] && n.flag == "1") {
                             //添加二级菜单
                             var panels = $('#menu_left').accordion("getPanel", i);
-                            $(panels).append("<div class='secMenu' onclick='toggleTab(this)' name='" + n.attributes.url + "'><a>" + n.text + "</a></div>");
+                            $(panels).append("<div class='secMenu' onclick='toggleTab(this)' name='" + n.url + "'><a>" + n.text + "</a></div>");
                         }
                     });
 
@@ -232,7 +236,7 @@
 <!--中间内容呈现区-->
 <div data-options="region:'center'" style="padding:5px;background:#eee;">
     <div id="mainTabs">
-        <div title="历史事件"
+        <div title="病历填写"
              data-options="iconCls:'ext-icon-page',closable:false,fit:true">
             <iframe src="/HistoryEvent"
                     style="border: 0; width: 99.9%; height: 99%;"></iframe>

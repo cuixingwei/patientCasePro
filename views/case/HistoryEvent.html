@@ -4,12 +4,46 @@
     <meta charset="UTF-8">
     <title></title>
     <% include ../head.html %>
+    <style>
+        .tr_height {
+            margin-bottom: 3px;
+        }
+    </style>
+    <script src="lib/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript">
         var grid;
-        var viewEvent = function (rowData) {
-            var url = "/CaseMain?taskCode=" + rowData.taskCode + "&taskOrder=" + rowData.taskOrder;
+        /*添加病历*/
+        var addFun = function (taskCode, carIdentification, caseNumbers) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification;
             window.open(url);
         };
+        /*查看病历*/
+        var viewFun = function (taskCode, carIdentification, pcOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder;
+            window.open(url);
+        };
+        /*编辑病历*/
+        var editFun = function (taskCode, carIdentification, pcOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + "&page=edit&pcOrder=" + pcOrder;
+            window.open(url);
+        };
+        /*删除病历*/
+        var deleteFun = function (taskCode, carIdentification, pcOrder) {
+            $.messager.confirm('确认', '确定要删除该病历嘛?', function (r) {
+                if (r) {
+                    var url = '/cases/deletePatientCase?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&pcOrder=' + pcOrder;
+                    $.post(url, function (data) {
+                        if (data) {
+                            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                            $.messager.alert('提示', '病历已删除!', 'info');
+                        } else {
+                            $.messager.alert('提示', '病历删除失败!', 'info');
+                        }
+                    });
+                }
+            });
+        };
+
         /* 初始化页面标签 */
         function init() {
             $('#startTime').datetimebox({
@@ -31,32 +65,36 @@
                     }
                 }
             });
-            $('#eventType').combobox({
-                url: '/dictionary/getEventType',
+            /*调度员编码*/
+            $('#dispatcher').combobox({
+                url: '/dictionary/getDispatcher',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
                 editable: false,
                 onLoadSuccess: function (data) {
                     if (data) {
-                        $('#eventType').combobox('setValue', data[0].id);
+                        $('#dispatcher').combobox('setValue', data[0].id);
                     }
                 }
             });
-
-            $('#outResult').combobox({
-                url: '/dictionary/getOutResult',
+            /*分站编码*/
+            $('#station').combobox({
+                url: '/dictionary/getStations?type=qb',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
                 editable: false,
+                onSelect: function (rec) {
+                    var url = '/dictionary/getCars?station_id=' + rec.id;
+                    $('#carCode').combobox('reload', url);
+                },
                 onLoadSuccess: function (data) {
                     if (data) {
-                        $('#outResult').combobox('setValue', data[0].id);
+                        $('#station').combobox('setValue', data[0].id);
                     }
                 }
             });
-
             grid = $('#grid').datagrid(
                     {
                         url: '/cases/getHistoryEvent',
@@ -64,49 +102,71 @@
                         pagination: true,
                         striped: true,
                         singleSelect: true,
+                        fitColumns: true,
                         nowrap: false,
                         rownumbers: true,
-                        idField: 'acceptTime',
                         pageSize: 20,
                         pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
                         columns: [[{
-                            field: 'eventName',
-                            title: '事件名称',
-                            width: "20%",
+                            field: 'caseNumbers',
+                            title: '病历数',
+                            width: "5%",
                             align: 'center'
                         }, {
-                            field: 'alarmPhone',
-                            title: '呼救电话',
-                            width: "15%",
+                            field: 'acceptStartTime',
+                            title: '呼救时间',
+                            width: "13%",
                             align: 'center',
                             sortable: true
                         }, {
-                            field: 'acceptStartTime',
-                            title: '受理时刻',
-                            width: "15%",
+                            field: 'alarmPhone',
+                            title: '呼救电话',
+                            width: "10%",
                             align: 'center'
                         }, {
                             field: 'dispatcher',
                             title: '调度员',
-                            width: "15%",
+                            width: "8%",
                             align: 'center'
                         }, {
-                            field: 'carCode',
-                            title: '实际标识',
-                            width: "10%",
+                            field: 'localAddr',
+                            title: '现场地址',
+                            width: "17%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'patientName',
+                            title: '患者姓名',
+                            width: "14%",
+                            resizable: true,
+                            align: 'center'
+                        }, {
+                            field: 'carIdentification',
+                            title: '车辆标识',
+                            width: "7%",
+                            align: 'center'
+                        }, {
+                            field: 'driver',
+                            title: '司机',
+                            width: "7%",
                             resizable: true,
                             align: 'center'
                         }, {
                             field: 'outResult',
                             title: '出车结果',
-                            width: "10%",
-                            resizable: true,
+                            width: "8%",
                             align: 'center'
                         }, {
-                            field: 'eventType',
-                            title: '事件类型',
-                            width: "14%",
-                            align: 'center'
+                            field: 'case',
+                            title: '病历',
+                            width: "6%",
+                            align: 'center',
+                            formatter: function (value, row, index) {
+                                return cxw
+                                        .formatString(
+                                        '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
+                                        row.taskCode, row.carIdentification, row.caseNumbers);
+                            }
                         }]],
                         toolbar: '#toolbar',
                         onBeforeLoad: function (param) {
@@ -116,47 +176,108 @@
                                 parent.$.messager.alert('警告', '结束时间要大于开始时间', 'warning');
                             }
                         },
-                        onDblClickRow: function (rowIndex, rowData) {
-                            viewEvent(rowData);
+                        view: detailview,
+                        detailFormatter: function (rowIndex, rowData) {
+                            var url = '/cases/getTaskCase?taskCode=' + rowData.taskCode + '&carIdentification=' + rowData.carIdentification;
+                            var sql = '<table border="1" cellpadding="10"><tr><td>患者姓名</td><td>性别</td><td>年龄</td><td>查看</td><td>修改</td><td>删除</td></tr>';
+                            var patientName, age, sex, pcOrder, taskCode, carIdentification;
+                            var length = 0;
+                            if (!isBlankOrEmpty(rowData.patientName)) {
+                                patientName = rowData.patientName.split(',');
+                            }
+                            if (!isBlankOrEmpty(rowData.age)) {
+                                age = rowData.age.split(',');
+                            }
+                            if (!isBlankOrEmpty(rowData.sex)) {
+                                sex = rowData.sex.split(',');
+                            }
+                            if (!isBlankOrEmpty(rowData.pcOrder)) {
+                                pcOrder = rowData.pcOrder.split(',');
+                            }
+                            if (!isBlankOrEmpty(patientName)) {
+                                length = patientName.length;
+                            }
+                            taskCode = rowData.taskCode;
+                            carIdentification = rowData.carIdentification;
+                            for (var i = 0; i < length; i++) {
+                                sql += cxw.formatString('<tr><td>{0}</td><td>{1}</td><td>{2}</td><td><img  onclick="viewFun(\'{3}\',\'{4}\',\'{5}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/></td>' +
+                                        '<td><img  onclick="editFun(\'{6}\',\'{7}\',\'{8}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_edit.png"/></td>' +
+                                        '<td><img  onclick="deleteFun(\'{9}\',\'{10}\',\'{11}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_delete.png"/></td></tr>',
+                                        patientName[i], sex[i], age[i], taskCode, carIdentification, pcOrder[i], taskCode, carIdentification, pcOrder[i], taskCode, carIdentification, pcOrder[i]);
+                            }
+                            sql += '</table>';
+                            return sql;
+
                         }
                     });
         }
 
         $(document).ready(function () {
             init();
+            var stationCode = '<%= stationCode %>';
+            if (stationCode != '101') { //隐藏分站选项
+                document.getElementById("stationDiv").style.visibility = "hidden";
+            }
             grid.datagrid('load', cxw.serializeObject($('#searchForm')));
         });
     </script>
 </head>
 <body class="easyui-layout" data-options="fit:true,border:false">
-<div id="toolbar" style="display: none;">
+<div id="toolbar" style="height: 110px;">
     <form id="searchForm">
-        <div>
-            <div style="width: 30%;float: left;display: inline-block;">
-                <label style="width: 70px;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
-                <input id="startTime" name="startTime" style="width: 150px;"/>
-            </div>
-            <div style="width: 30%;display: inline-block;">
-                <label style="width: 70px;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
-                <input id="endTime" name="endTime" style="width: 150px;"/>
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
+                <input id="startTime" name="startTime" style="width: 50%;"/>
             </div>
             <div style="width: 33%;display: inline-block;">
-                <label style="width: 70px;text-align: right;display: inline-block;margin-right: 5px;">实际标识:</label>
-                <input style="width: 150px" id="carCode" name="carCode"/></div>
-        </div>
-        <div>
-            <div style="width: 30%;float: left;display: inline-block;">
-                <label style="width: 70px;text-align: right;display: inline-block;margin-right: 5px;">出车结果:</label>
-                <input style="width: 140px" id="outResult" name="outResult"/>
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
+                <input id="endTime" name="endTime" style="width: 50%;"/>
             </div>
-            <div style="width: 30%;display: inline-block;">
-                <label style="width: 70px;text-align: right;display: inline-block;margin-right: 5px;">事件类型:</label>
-                <input style="width: 150px" id="eventType" name="eventType"/></div>
-            <div style="width: 33%;display: inline-block;">
+            <div style="width: 33%;display: inline-block;text-align: center">
                 <a href="javascript:void(0);" class="easyui-linkbutton"
-                   style="width: 100px;text-align: right;display: inline-block;margin-right: 5px;"
+                   style="text-align: right;display: inline-block;"
                    data-options="iconCls:'ext-icon-zoom',plain:true"
-                   onclick=" grid.datagrid('load', cxw.serializeObject($('#searchForm')));">查询</a></div>
+                   onclick=" grid.datagrid('load', cxw.serializeObject($('#searchForm')));">查询</a>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">司机:</label>
+                <input style="width: 50%" name="driver"/>
+            </div>
+            <div style="width: 33%;display: inline-block;" id="stationDiv">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
+                <input style="width: 50%" id="station" name="station"/>
+            </div>
+            <div style="width: 33%;display: inline-block;float:right">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">车辆:</label>
+                <input style="width: 50%" id="carCode" name="carCode"/>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">医生:</label>
+                <input style="width: 50%" name="doctor"/>
+            </div>
+            <div style="width: 33%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">护士:</label>
+                <input style="width: 50%" name="nurse"/>
+            </div>
+            <div style="width: 33%;float: right;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">任务号:</label>
+                <input style="width: 50%" name="taskCode"/>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 66%;float: left;display: inline-block;text-align: left;">
+                <label style="width: 15%;text-align: right;display: inline-block;margin-right: 5px;">现场地址:</label>
+                <input style="width: 75%" name="localAddr"/>
+            </div>
+            <div style="width: 33%;display: inline-block;float: right">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">调度员:</label>
+                <input style="width: 50%" id="dispatcher" name="dispatcher"/>
+            </div>
         </div>
     </form>
 </div>
@@ -164,7 +285,6 @@
 <div data-options="region:'center',fit:true,border:false">
     <table id="grid" data-options="fit:true,border:false"></table>
 </div>
-
 
 </body>
 </html>

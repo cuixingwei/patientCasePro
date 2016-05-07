@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+    <% include ../head.html %>
+    <script src="js/patientCaseDetail.js"></script>
+    <style>
+        .div_odd {
+            margin-bottom: 3px;
+        }
+
+        .div_even {
+            margin-bottom: 3px;
+            background: #eeeeee;
+        }
+
+        .tr_height {
+            margin-bottom: 3px;
+        }
+
+        .label_3 {
+            width: 24%;
+            text-align: left;
+            display: inline-block;;
+        }
+
+        .input_3 {
+            width: 50%;
+        }
+
+        .div_3_left {
+            width: 33%;
+            display: inline-block;
+            float: left;
+        }
+
+        .div_3_right {
+            width: 33%;
+            display: inline-block;
+            float: right;
+        }
+
+        .div_3 {
+            width: 33%;
+            display: inline-block;
+        }
+
+        .label_1 {
+            width: 8%;
+            display: inline-block;
+        }
+
+        .input_1 {
+            width: 90%;
+        }
+
+        .label_2 {
+            width: 17%;
+            display: inline-block;
+        }
+
+        .input_2 {
+            width: 50%;
+        }
+
+    </style>
+    <script>
+        var stationCode;
+        var page = '<%= page %>';
+        var taskCode = '<%= taskCode %>';
+        var taskOrder = '<%= taskOrder %>';
+        var caseNumbers = '<%= caseNumbers %>';
+        var pcOrder = '<%= pcOrder %>';
+        var carCode;
+        var carIdentification = '<%= carIdentification %>';
+        var cureMeasures = [];
+        var cureMeasureRecord = [];//编辑，查看时
+        var DMedications = [];
+        var medicationsRecord = [];//编辑，查看时
+        $(document).ready(function () {
+            init();
+            loadTask(); //加载任务信息
+
+            if (page == 'edit') {//编辑病例信息
+                loadPatientCase(taskCode, carIdentification, pcOrder);
+                loadPatientSchedule(taskCode, carIdentification, pcOrder);
+                loadCureMeasure(taskCode, carIdentification, pcOrder);
+                loadMedicationRecord(taskCode, carIdentification, pcOrder);
+                loadILLTeller(taskCode, carIdentification, pcOrder);
+            }
+            if (page == 'view') {
+                loadPatientCase(taskCode, carIdentification, pcOrder);
+                loadPatientSchedule(taskCode, carIdentification, pcOrder);
+                loadCureMeasure(taskCode, carIdentification, pcOrder);
+                loadMedicationRecord(taskCode, carIdentification, pcOrder);
+                loadILLTeller(taskCode, carIdentification, pcOrder);
+                $("#save_Btn").hide();
+            }
+        });
+    </script>
+</head>
+<body>
+<div class="easyui-panel" title="<%= title %>" style="padding:10px;background:#fafafa;width: 90%;"
+     data-options="fit:true">
+    <form>
+        <div class="tr_height">
+            <span><b>患者信息</b></span>
+        </div>
+        <div class="div_odd">
+            <div class="div_3_left">
+                <label class="label_3">姓名</label>
+                <input name="patientName" class="input_3"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">性别</label>
+                <select class="easyui-combobox" name="sex" id="sex" style="width: 50%;"
+                        data-options="editable:false,panelHeight:'auto'">
+                    <option value="不祥">不祥</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">年龄</label>
+                <input id="age" name="age" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <div style="display: inline-block;width: 66%;">
+                <label style="width: 12%;display: inline-block;">救治地点</label>
+                <input name="aidAddr" style="width: 75%;">
+            </div>
+            <div style="display: inline-block;float:right;width: 33%;">
+                <label class="label_3">到达病人身边时间</label>
+                <input class="easyui-datetimebox" id="arriveSpotTime" name="arriveSpotTime"
+                       data-options="showSeconds:true" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_odd">
+            <div class="div_3_left">
+                <label class="label_3">民族</label>
+                <input id="nationCode" name="nationCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">国籍</label>
+                <select class="easyui-combobox" name="nationality" id="nationality" style="width: 50%;"
+                        data-options="editable:false,panelHeight:'auto'">
+                    <option value="1">中国</option>
+                    <option value="2">其他</option>
+                </select>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">病历提供人</label>
+                <input name="caseProvider" class="input_3"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <div class="div_3_left">
+                <label class="label_3">职业</label>
+                <input name="workCode" id="workCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">身份</label>
+                <input name="identityCode" id="identityCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">死亡证明</label>
+                <input name="deathCode" id="deathCode" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_odd">
+            <div class="div_3_left">
+                <label class="label_3">联系人</label>
+                <input name="linkMan" class="input_3"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">联系电话</label>
+                <input name="linkPhone" class="input_3"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">现场地点类型</label>
+                <input name="localAddrType" id="localAddrType" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <div class="div_3_left">
+                <label class="label_3">随车医生</label>
+                <input name="doctor" id="doctor" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">随车护士</label>
+                <input name="nurse" id="nurse" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">司机</label>
+                <input name="driver" id="driver" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_odd">
+            <div class="div_3_left">
+                <label class="label_3">呼救原因</label>
+                <input name="patientReasonCode" id="patientReasonCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">病情</label>
+                <input name="illnessCode" id="illnessCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">患方配合</label>
+                <input name="patientCooperation" id="patientCooperation" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <div class="div_3_left">
+                <label class="label_3">疾病类型</label>
+                <input name="departmentCode" id="departmentCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">送往地点</label>
+                <input name="toAddr" id="toAddr" class="input_3"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">送往地点类型</label>
+                <input name="toAddrType" id="toAddrType" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_odd">
+            <div class="div_3_left">
+                <label class="label_3">疾病分类</label>
+                <input name="classCode" id="classCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label class="label_3">救治结果</label>
+                <input name="treatResultCode" id="treatResultCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">转归结果</label>
+                <input name="outcomeCode" id="outcomeCode" style="width: 50%;"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <label class="label_1">主诉</label>
+            <input name="chiefComplaint" class="input_1"/>
+        </div>
+        <div class="div_odd">
+            <label class="label_1">现病史</label>
+            <textarea name="presentIllness" class="input_1" rows="2"></textarea>
+        </div>
+        <div class="div_even">
+            <label class="label_1">既往病史</label>
+            <input name="pastHistory" class="input_1"/>
+        </div>
+        <div class="div_odd">
+            <label class="label_1">药物过敏史</label>
+            <input name="allergy" class="input_1"/>
+        </div>
+        <div class="div_even">
+            <label class="label_1"><b>体格检查</b></label>
+            <span>T</span>
+            <input name="T" id="TT" style="width: 50px;"/>
+            <span>℃</span>
+            <input type="checkbox" onclick="TCheckClick(this);"/>未查
+            <span style="margin-left: 30px;">P</span>
+            <input name="P" style="width: 50px;margin-right: 5px;"/>
+            <span>次/分</span>
+            <span style="margin-left: 30px;">R</span>
+            <input name="R" style="width: 50px;margin-right: 5px;"/>
+            <span>次/分</span>
+            <span style="margin-left: 30px;">BP</span>
+            <input name="BPH" style="width: 50px;margin-right: 5px;"/>
+            <span>/</span>
+            <input name="BPL" style="width: 50px;"/>
+            <span style="margin-left: 30px;">一般情况</span>
+            <select class="easyui-combobox" name="general" id="general" style="width: 90px;"
+                    data-options="editable:false,panelHeight:'auto'">
+                <option value="">--请选择--</option>
+                <option value="无">无</option>
+                <option value="尚可">尚可</option>
+                <option value="差">差</option>
+            </select>
+        </div>
+        <div class="div_odd">
+            <label class="label_1">神志</label>
+            <input type="radio" name="senseSchedule" value="清楚">清楚
+            <input type="radio" name="senseSchedule" value="嗜睡" style="margin-left: 20px;">嗜睡
+            <input type="radio" name="senseSchedule" value="模糊" style="margin-left: 20px;">模糊
+            <input type="radio" name="senseSchedule" value="谵妄" style="margin-left: 20px;">谵妄
+            <input type="radio" name="senseSchedule" value="昏睡" style="margin-left: 20px;">昏睡
+            <input type="radio" name="senseSchedule" value="昏迷" style="margin-left: 20px;">昏迷
+            <input type="radio" name="senseSchedule" value="丧失" style="margin-left: 20px;">丧失
+        </div>
+        <div class="div_even">
+            <label class="label_1">瞳孔</label>
+            <span>左</span>
+            <input name="leftEye" style="width: 50px;margin-right: 5px;">
+            <span>mm</span>
+            <span style="margin-left: 30px;">右</span>
+            <input name="rightEye" style="width: 50px;margin-right: 5px;">
+            <span>mm</span>
+            <span style="margin-left: 30px;">对光反射</span>
+            <select class="easyui-combobox" name="eyeLight" id="eyeLight" style="width: 80px;"
+                    data-options="editable:false,panelHeight:'auto'">
+                <option value="">--请选择--</option>
+                <option value="存在">存在</option>
+                <option value="消失">消失</option>
+                <option value="迟钝">迟钝</option>
+            </select>
+            <input type="checkbox" style="margin-left: 30px;" value="1" name="kczg"/>口唇紫绀
+        </div>
+        <div class="div_odd">
+            <label class="label_1">头颈</label>
+            <input name="head" class="input_1">
+        </div>
+        <div class="div_even">
+            <label class="label_1">胸部</label>
+            <input name="breast" class="input_1">
+        </div>
+        <div class="div_odd">
+            <label class="label_1">肺部</label>
+            <input name="lung" class="input_1">
+        </div>
+        <div class="div_even">
+            <label class="label_1">心脏</label>
+            <input name="heart" class="input_1">
+        </div>
+        <div class="div_odd">
+            <label class="label_1">腹部</label>
+            <input name="abdomen" class="input_1">
+        </div>
+        <div class="div_even">
+            <label class="label_1">四肢</label>
+            <input name="limb" class="input_1">
+        </div>
+        <div class="div_odd">
+            <label class="label_1">脊柱</label>
+            <input name="spine" class="input_1">
+        </div>
+        <div class="div_even">
+            <label class="label_1">其他</label>
+            <input name="others" class="input_1">
+        </div>
+        <div class="div_odd">
+            <label class="label_1">辅助检查</label>
+            <input type="checkbox" name="eeg" value="1">心电图
+            <input type="checkbox" name="sbgm" value="1" style="margin-left: 50px;">简易血糖仪
+        </div>
+        <div class="div_even">
+            <div style="width:45%;display: inline-block">
+                <label class="label_2"><b>CRAMS计分</b></label>
+            </div>
+            <div style="width: 45%;display: inline-block;">
+                <label class="label_2">循环</label>
+                <select class="easyui-combobox" name="cyclePoints" id="cyclePoints" style="width: 40%;"
+                        data-options="editable:false,panelHeight:'auto',
+                        onChange: function (n, o) {
+                            pointsChange(n,o,1);
+                        }">
+                    <option value="0">--请选择--</option>
+                    <option value="3">毛细血管充盈良好或收缩压≥90mmHg</option>
+                    <option value="2">毛细血管充盈迟缓或收缩压89~60mmHg</option>
+                    <option value="1">无毛细血管充盈或收缩压≤59mmHg</option>
+                </select>
+                <span style="margin-left: 30px;">分值:</span>
+                <span id="cyclePointsSpan"></span>
+            </div>
+        </div>
+        <div class="div_odd">
+            <div style="width:45%;display: inline-block">
+                <label class="label_2">呼吸</label>
+                <select class="easyui-combobox" name="breathPoints" id="breathPoints" style="width: 40%;"
+                        data-options="editable:false,panelHeight:'auto',
+                        onChange: function (n, o) {
+                            pointsChange(n,o,2);
+                        }">
+                    <option value="0">--请选择--</option>
+                    <option value="3">正常</option>
+                    <option value="2">不正常（费力、浅或呼吸＞35次/min）</option>
+                    <option value="1">无自主呼吸</option>
+                </select>
+                <span style="margin-left: 30px;">分值:</span>
+                <span id="breathPointsSpan"></span>
+            </div>
+            <div style="width: 45%;display: inline-block;">
+                <label class="label_2">运动</label>
+                <select class="easyui-combobox" name="motionPoints" id="motionPoints" style="width: 40%;"
+                        data-options="editable:false,panelHeight:'auto',
+                        onChange: function (n, o) {
+                            pointsChange(n,o,3);
+                        }">
+                    <option value="0">--请选择--</option>
+                    <option value="3">正常（能按吩咐动作）</option>
+                    <option value="2">只对疼痛刺激有反应</option>
+                    <option value="1">无反应或体位固定</option>
+                </select>
+                <span style="margin-left: 30px;">分值:</span>
+                <span id="motionPointsSpan"></span>
+            </div>
+        </div>
+        <div class="div_even">
+            <div style="width:45%;display: inline-block">
+                <label class="label_2">言语</label>
+                <select class="easyui-combobox" name="speechPoints" id="speechPoints" style="width: 40%;"
+                        data-options="editable:false,panelHeight:'auto',
+                        onChange: function (n, o) {
+                            pointsChange(n,o,4);
+                        }">
+                    <option value="0">--请选择--</option>
+                    <option value="3">正常（对答切题）</option>
+                    <option value="2">言语错乱 语无伦次</option>
+                    <option value="1">发音听不懂或不能发音</option>
+                </select>
+                <span style="margin-left: 30px;">分值:</span>
+                <span id="speechPointsSpan"></span>
+            </div>
+            <div style="width: 45%;display: inline-block;">
+                <label class="label_2">胸腹</label>
+                <select class="easyui-combobox" name="abdomenPoints" id="abdomenPoints" style="width: 40%;"
+                        data-options="editable:false,panelHeight:'auto',
+                        onChange: function (n, o) {
+                            pointsChange(n,o,5);
+                        }">
+                    <option value="0">--请选择--</option>
+                    <option value="3">均无触痛</option>
+                    <option value="2">胸或腹有触痛</option>
+                    <option value="1">连枷胸、板状腹、血腹</option>
+                </select>
+                <span style="margin-left: 30px;">分值:</span>
+                <span id="abdomenPointsSpan"></span>
+            </div>
+        </div>
+        <div class="div_odd">
+            <label class="label_1"><b>初步诊断</b></label>
+            <textarea name="doctorDiagnosis" rows="3" class="input_1"></textarea>
+        </div>
+        <div class="div_even">
+            <label class="label_1">处理</label>
+            <button type="button" id="handleBtn">选择</button>
+        </div>
+        <div class="div_odd">
+            <span id="handles">无</span>
+        </div>
+        <div class="div_even">
+            <label class="label_1">其他处理</label>
+            <textarea name="otherHandle" class="input_1" rows="2"></textarea>
+        </div>
+        <div class="div_odd">
+            <label class="label_1">用药</label>
+            <button type="button" id="medicationBtn">选择</button>
+        </div>
+        <div class="div_even">
+            <span id="medications">无</span>
+        </div>
+        <div class="div_odd">
+            <label class="label_1">其他用药</label>
+            <textarea name="otherMedications" class="input_1" rows="2"></textarea>
+        </div>
+        <div class="div_even" style="text-align: center">
+            <div class="div_3_left">
+                <label>医生签名:</label>
+                <input name="doctorSign" id="doctorSign" style="width: 50%;"/>
+            </div>
+            <div class="div_3">
+                <label>护士签名:</label>
+                <input name="nurseSign" id="nurseSign" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label>签字时间:</label>
+                <input class="easyui-datetimebox" id="signTime" name="signTime"
+                       data-options="showSeconds:true"
+                       style="width:50%;"/>
+            </div>
+        </div>
+        <div class="div_odd">
+            <label><b>病情告知</b></label>
+        </div>
+        <div class="div_even">
+            <input type="checkbox" name="truthTelling" value="1"><span>1、对以上救治措施之情</span>
+        </div>
+        <div class="div_odd">
+            <input type="checkbox" name="truthTelling" value="2"><span>2、在转运途中，患者病情可随时加重或出现其他危急情况</span>
+        </div>
+        <div class="div_even">
+            <input type="checkbox" name="truthTelling" value="3"><span>3、患者病情危重，在转运途中随时可能发送呼吸、心跳</span>
+        </div>
+        <div class="div_odd">
+            <input type="checkbox" name="truthTelling" value="4"><span>4、患者要求不去医院进一步治疗，并同意救护车返回</span>
+        </div>
+        <div class="div_even">
+            <input type="checkbox" name="truthTelling" value="5"><span>5、患方要求转往</span>
+            <input style="width: 100px;" id="station" name="stationTransfer"/>
+        </div>
+        <div class="div_odd">
+            <input type="checkbox" name="truthTelling" value="6"><span>6、责任人与患方的关系是</span>
+            <input style="width: 80px;" name="relation">
+        </div>
+        <div class="div_even">
+            <input type="checkbox" name="truthTelling" value="7">
+            <span>7、其他：</span>
+            <textarea name="tellOthers" style="width: 90%" rows="2"></textarea>
+        </div>
+        <div class="div_odd" style="text-align: center">
+            <div class="div_3_left">
+                <label>责任人签字:</label>
+                <input name="responsiblePersonSign" class="input_3"/>
+            </div>
+            <div class="div_3">
+                <label>告知人签字:</label>
+                <input name="tellerSign" id="tellerSign" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label>告知时间:</label>
+                <input class="easyui-datetimebox" id="tellTime" name="tellTime"
+                       data-options="showSeconds:true"
+                       style="width:50%;"/>
+            </div>
+        </div>
+        <div class="div_even">
+            <label><b>病历续页</b></label>
+        </div>
+        <div class="div_odd">
+            <textarea name="remark" rows="4" style="width:100%"></textarea>
+        </div>
+        <div class="div_even" style="text-align: center">
+            <div class="div_3">
+                <label>病历填写人:</label>
+                <span id="usernameSpan"><%= username %></span>
+            </div>
+            <div class="div_3">
+                <label>填写时间:</label>
+                <span id="currentTime"></span>
+            </div>
+        </div>
+        <div style="text-align: center">
+            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'" id="save_Btn"
+               onclick="javascript:savePatientCase();">保存</a>
+        </div>
+    </form>
+</div>
+<div id="handle_window" title="选择处理措施" style="width:500px;height:300px;display: none;"
+     data-options="modal:true">
+    <form>
+        <div id="cureMeasureDiv" style="padding: 10px;">
+
+        </div>
+    </form>
+</div>
+<div id="medication_window" title="选择用药" style="width:500px;height:300px;display: none;"
+     data-options="modal:true">
+    <form>
+        <div id="medicationRecordDiv" style="padding: 10px;">
+
+        </div>
+    </form>
+</div>
+</body>
+</html>

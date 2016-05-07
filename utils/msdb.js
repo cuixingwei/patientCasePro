@@ -10,7 +10,7 @@ var async = require('async');
 
 var poolConfig = {
     min: 2,
-    max: 4,
+    max: 10,
     log: true
 };
 
@@ -30,12 +30,13 @@ exports.select = function (trans, callback) {
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
                 console.error(err);
+                connection.release();
                 return callback(true, '执行操作失败!!' + err);
             }
-            callback(null, result);
-            console.log('rowCount: ' + rowCount);
             //release the connection back to the pool when finished
             connection.release();
+            console.log('rowCount: ' + rowCount);
+            callback(null, result);
         });
 
         //添加参数
@@ -45,7 +46,6 @@ exports.select = function (trans, callback) {
         }
 
         request.on('row', function (columns) {
-            //callback(null, columns);
             result.push(columns);
         });
         connection.execSql(request);
@@ -68,12 +68,13 @@ exports.change = function (trans, callback) {
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
                 console.error(err);
+                connection.release();
                 return callback(true, '操作失败!!' + err);
             }
             console.log('改变行数 : ' + rowCount);
-            callback(null, rowCount);
             //release the connection back to the pool when finished
             connection.release();
+            callback(null, rowCount);
         });
         //添加参数
         for (i = 0; i < trans.params.length; i++) {
@@ -154,14 +155,17 @@ exports.changeSeries = function (trans, callback) {
             }, function (err) {
                 console.log('全部执行结束，还未提交!err=' + err);
                 if (err) {
+                    console.log('执行失败，事务开始回滚');
                     connection.rollbackTransaction(function (err) {
                         console.log('star rollback');
+                        connection.release();
+                        console.log('回滚失败');
                         callback(true, '回滚失败-' + err);
                     });
                 } else {
                     console.log('执行完成，开始提交之前');
                     connection.commitTransaction(function (err) {
-                        console.log('执行完成，开始提交');
+                        console.log('执行完成，开始提交err' + err);
                         if (err) {
                             connection.rollbackTransaction(function (err) {
                                 callback(true, '回滚失败-' + err);

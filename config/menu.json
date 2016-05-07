@@ -1,23 +1,20 @@
 ﻿[
   {
-    "attributes": {
-      "target": "",
-      "url": ""
-    },
+    "target": "",
+    "url": "",
+    "iconCls": "ext-icon-application_side_tree",
     "id": "0",
     "text": "指挥调度中心统计",
-    "flag":"1"
+    "flag": "0"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/RingToAnswerTimes"
-    },
+    "target": "",
+    "url": "/RingToAnswerTimes",
     "iconCls": "ext-icon-world",
     "id": "00",
     "pid": "0",
     "text": "振铃到接听大于X秒",
-    "flag":"1"
+    "flag": "1"
   },
   {
     "attributes": {
@@ -28,117 +25,97 @@
     "id": "01",
     "pid": "0",
     "text": "受理时长大于X秒",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/talkTime"
-    },
+    "target": "",
+    "url": "/talkTime",
     "iconCls": "ext-icon-world",
     "id": "02",
     "pid": "0",
     "text": "通话时长大于X秒",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/EventType"
-    },
+    "target": "",
+    "url": "/EventType",
     "iconCls": "ext-icon-world",
     "id": "03",
     "pid": "0",
     "text": "事件类型统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/AcceptTime"
-    },
+    "target": "",
+    "url": "/AcceptTime",
     "iconCls": "ext-icon-world",
     "id": "04",
     "pid": "0",
     "text": "受理时间统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/CallHistory"
-    },
+    "target": "",
+    "url": "/CallHistory",
     "iconCls": "ext-icon-world",
     "id": "05",
     "pid": "0",
     "text": "呼救历史查询",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/Accident"
-    },
+    "target": "",
+    "url": "/Accident",
     "iconCls": "ext-icon-world",
     "id": "06",
     "pid": "0",
     "text": "重大紧急事件情况统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/DispatcherWorkload"
-    },
+    "target": "",
+    "url": "/DispatcherWorkload",
     "iconCls": "ext-icon-world",
     "id": "07",
     "pid": "0",
     "text": "调度员工作统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/OutCarRecord"
-    },
+    "target": "",
+    "url": "/OutCarRecord",
     "iconCls": "ext-icon-world",
     "id": "08",
     "pid": "0",
     "text": "出车记录表",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/StopTask"
-    },
+    "target": "",
+    "url": "/StopTask",
     "iconCls": "ext-icon-world",
     "id": "09",
     "pid": "0",
     "text": "中止任务信息统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/StopTaskReason"
-    },
+    "target": "",
+    "url": "/StopTaskReason",
     "iconCls": "ext-icon-world",
     "id": "010",
     "pid": "0",
     "text": "中止任务原因统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/CarPause"
-    },
+    "target": "",
+    "url": "/CarPause",
     "iconCls": "ext-icon-world",
     "id": "011",
     "pid": "0",
     "text": "车辆暂停调用情况",
-    "flag":"1"
+    "flag": "1"
   },
   {
     "attributes": {
@@ -149,114 +126,120 @@
     "id": "012",
     "pid": "0",
     "text": "挂起事件流水统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/HungEventReason"
-    },
+    "target": "",
+    "url": "/HungEventReason",
     "iconCls": "ext-icon-world",
     "id": "013",
     "pid": "0",
     "text": "挂起原因统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/AnswerAlarm"
-    },
+    "target": "",
+    "url": "/AnswerAlarm",
     "iconCls": "ext-icon-world",
     "id": "014",
     "pid": "0",
     "text": "中心接警情况统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": ""
-    },
+    "target": "",
+    "url": "",
     "iconCls": "ext-icon-application_side_tree",
     "id": "1",
     "text": "分站统计",
-    "flag":"1"
+    "flag": "0"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/SubstationVisit"
-    },
+    "target": "",
+    "url": "/SubstationVisit",
     "iconCls": "ext-icon-world",
     "id": "10",
     "pid": "1",
     "text": "急救站出诊情况查询",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/SubstationLateVisit"
-    },
+    "target": "",
+    "url": "/SubstationLateVisit",
     "iconCls": "ext-icon-world",
     "id": "11",
     "pid": "1",
     "text": "急救站晚出诊统计",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/DriverWork"
-    },
+    "target": "",
+    "url": "/DriverWork",
     "iconCls": "ext-icon-world",
     "id": "13",
     "pid": "1",
     "text": "司机工作情况查询",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/DoctorWork"
-    },
+    "target": "",
+    "url": "/DoctorWork",
     "iconCls": "ext-icon-world",
     "id": "14",
     "pid": "1",
     "text": "医生工作情况查询",
-    "flag":"1"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/NurseWork"
-    },
+    "target": "",
+    "url": "/NurseWork",
     "iconCls": "ext-icon-world",
     "id": "14",
     "pid": "1",
     "text": "护士工作情况查询",
-    "flag":"1"
+    "flag": "0"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": ""
-    },
+    "target": "",
+    "url": "",
     "iconCls": "ext-icon-application_side_tree",
-    "id": "2",
+    "id": "bingli",
     "text": "病历模块",
-    "flag":"0"
+    "flag": "1"
   },
   {
-    "attributes": {
-      "target": "",
-      "url": "/HistoryEvent"
-    },
+    "target": "",
+    "url": "/HistoryEvent",
     "iconCls": "ext-icon-world",
     "id": "21",
-    "pid": "2",
-    "text": "历史事件",
-    "flag":"0"
+    "pid": "bingli",
+    "text": "病历填写",
+    "flag": "1"
+  },
+  {
+    "target": "",
+    "url": "/PatientCaseManage",
+    "iconCls": "ext-icon-world",
+    "id": "21",
+    "pid": "bingli",
+    "text": "病历管理",
+    "flag": "1"
+  },
+  {
+    "target": "",
+    "url": "",
+    "iconCls": "ext-icon-application_side_tree",
+    "id": "3",
+    "text": "人员管理模块",
+    "flag": "1"
+  },
+  {
+    "target": "",
+    "url": "/PersonManage",
+    "iconCls": "ext-icon-world",
+    "id": "30",
+    "pid": "3",
+    "text": "人员管理",
+    "flag": "1"
   }
 ]

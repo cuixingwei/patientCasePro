@@ -22,7 +22,7 @@ exports.formatSecond = function (second) {
         }
     }
     return ss;
-}
+};
 /**
  * 计算百分比
  * @param total
@@ -37,7 +37,7 @@ exports.calculateRate = function (total, portion) {
         portion = 0;
     }
     return (Math.round(portion / total * 10000) / 100.00 + "%");// 小数点后两位百分比
-}
+};
 
 /**
  * 获取当前日期
@@ -54,4 +54,4 @@ exports.getCurrentTime = function () {
     return y + '-' + (m < 10 ? ('0' + m) : m) + '-' + (d < 10 ? ('0' + d) : d)
         + ' ' + (hh < 10 ? ('0' + hh) : hh) + ':'
         + (mm < 10 ? ('0' + mm) : mm) + ':' + (ss < 10 ? ('0' + ss) : ss);
-}
+};
