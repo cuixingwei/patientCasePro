@@ -13,8 +13,8 @@
     <script type="text/javascript">
         var grid;
         /*添加病历*/
-        var addFun = function (taskCode, carIdentification, caseNumbers) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification;
+        var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder;
             window.open(url);
         };
         /*查看病历*/
@@ -164,8 +164,8 @@
                             formatter: function (value, row, index) {
                                 return cxw
                                         .formatString(
-                                        '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
-                                        row.taskCode, row.carIdentification, row.caseNumbers);
+                                        '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
+                                        row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder);
                             }
                         }]],
                         toolbar: '#toolbar',

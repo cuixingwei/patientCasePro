@@ -58,6 +58,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=7',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         panelHeight: 'auto',
         method: 'get'
     });
@@ -66,6 +67,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=7',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         method: 'get'
     });
     /*护士签名*/
@@ -73,6 +75,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=8',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         method: 'get'
     });
     /*随车医生*/
@@ -80,6 +83,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=7',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         method: 'get'
     });
     /*随车护士*/
@@ -87,6 +91,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=8',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         method: 'get'
     });
     /*司机*/
@@ -94,6 +99,7 @@ var init = function () {
         url: '/dictionary/getPerson?personType=6',
         valueField: 'id',
         textField: 'name',
+        editable: false,
         method: 'get'
     });
     /*病人转归*/
