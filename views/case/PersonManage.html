@@ -27,6 +27,7 @@
         var personTypes;//所有人员类型
         var userID; //所有的工号，用来在添加和修改用户时去重
         var isRepeat = 0;
+        var stationCode = '<%= stationCode %>';
         /*验证所填工号是否系统中已存在*/
         var reviewRepeat = function (target) {
             isRepeat = 0;
@@ -82,7 +83,7 @@
             operate = 1;
             $('#person_window').show().dialog({
                 width: 500,
-                height: 350,
+                height: 410,
                 title: '[添加/修改]人员信息',
                 modal: true,
                 closable: true,
@@ -101,6 +102,19 @@
                     //获取工号列表
                     $.post('/cases/getPersons', function (data) {
                         userID = data.rows;
+                        $("#personForm").form('load', {
+                            "userId": '',
+                            "username": '',
+                            "password": '',
+                            "personTypeCode": '7',
+                            "flag": 1,
+                            "valid": 0,
+                            "departmentCode": '',
+                            "driverCode": '',
+                            "qualificationCode": '',
+                            "licenceCode": '',
+                            "trainCode": ''
+                        });
                     });
                 }
             });
@@ -110,7 +124,7 @@
             operate = 2;
             $('#person_window').show().dialog({
                 width: 500,
-                height: 350,
+                height: 410,
                 title: '[添加/修改]人员信息',
                 modal: true,
                 closable: true,
@@ -142,28 +156,15 @@
                                 "personTypeCode": data.personTypeCode,
                                 "flag": data.flag,
                                 "departmentCode": data.departmentCode,
-                                "driverCode": data.driverCode
+                                "driverCode": data.driverCode,
+                                "qualificationCode": data.qualificationCode,
+                                "licenceCode": data.licenceCode,
+                                "trainCode": data.trainCode,
+                                "valid": data.valid
                             });
                         }
                     });
 
-                }
-            });
-        };
-
-        /*审核人员*/
-        var reviewFun = function (ID) {
-            $.messager.confirm('确认', '确定要通过添加人员的审核吗?', function (r) {
-                if (r) {
-                    var url = '/cases/reviewPerson?id=' + ID;
-                    $.post(url, function (data) {
-                        if (data) {
-                            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
-                            $.messager.alert('提示', '审核通过!', 'info');
-                        } else {
-                            $.messager.alert('提示', '审核失败，请稍后重试!', 'info');
-                        }
-                    });
                 }
             });
         };
@@ -212,14 +213,32 @@
                         $('#personType').combobox('setValue', data[0].id);
                     }
                     var str = '';
+                    var n = 0;
                     $.each(data, function (i, db) {
                         console.log('i:' + i + ';' + db.id + ';' + db.name);
                         if (db.name != '--请选择--') {
                             console.log('i2:' + i + ';' + db.id + ';' + db.name);
-                            str += '<input type="radio"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
-                            if (i % 4 == 0) {
-                                str += '<br/>';
+                            if (stationCode == '101') { //中心登录，人员类型全部显示
+                                if (db.id == '7') {
+                                    str += '<input type="radio" checked="checked"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    n++;
+                                } else {
+                                    str += '<input type="radio"   name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    n++;
+                                }
+                                if (n == 4) {
+                                    str += '<br/>';
+                                }
+                            } else {
+                                if (db.id == '6' || db.id == '7' || db.id == '8' || db.id == '9' || db.id == '3') {
+                                    if (db.id == '7') {
+                                        str += '<input type="radio" checked="checked"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    } else {
+                                        str += '<input type="radio"   name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    }
+                                }
                             }
+
                         }
                     });
                     $("#personTypeDiv").empty().append(str);
@@ -241,7 +260,7 @@
                 }
             });
             $('#stationAdd').combobox({
-                url: '/dictionary/getStations',
+                url: '/dictionary/getStations?type=add',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
@@ -333,7 +352,7 @@
                                 if (value == 1) {
                                     return '<img  src="/images/YES.gif"    style = "vertical-align: middle;" > ';
                                 } else {
-                                    return cxw.formatString('<button type="button" onclick="reviewFun(\'{0}\')">{1}</button>', row.id, '审核');
+                                    return '<img  src="/images/NO.gif"    style = "vertical-align: middle;" > ';
                                 }
                             }
                         }]],
@@ -343,8 +362,12 @@
 
         $(document).ready(function () {
             init();
-            if (!(personType == 2 || personType == 11)) {
-                $("#grid").datagrid('hideColumn', 'valid');
+            if (!(personType == 2 || personType == 1 || personType == 11)) {
+                document.getElementById("validDiv").style.visibility = "hidden";
+            }
+
+            if (stationCode != '101') { //隐藏分站选项
+                document.getElementById("stationDiv").style.visibility = "hidden";
             }
             grid.datagrid('load', cxw.serializeObject($('#searchForm')));
         });
@@ -383,7 +406,7 @@
                     <option value="0">未启用</option>
                 </select>
             </div>
-            <div style="width: 24%;display: inline-block;">
+            <div style="width: 24%;display: inline-block;" id="stationDiv">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
                 <input style="width: 50%" id="station" name="station"/>
             </div>
@@ -439,9 +462,26 @@
                 <input type="radio" value="1" name="flag" checked="checked">启用
                 <input type="radio" value="0" name="flag">禁用
             </div>
+            <div class="tr_height" id="validDiv">
+                <label class="label_1">审核状态:</label>
+                <input type="radio" value="1" name="valid" checked="checked">通过
+                <input type="radio" value="0" name="valid">未通过
+            </div>
             <div class="tr_height">
                 <label class="label_1">驾驶证编码:</label>
                 <input name="driverCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">资格证编码:</label>
+                <input name="qualificationCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">执业证编码:</label>
+                <input name="licenceCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">培训证编码:</label>
+                <input name="trainCode" class="input_1">
             </div>
         </div>
     </form>

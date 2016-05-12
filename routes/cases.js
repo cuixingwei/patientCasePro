@@ -109,9 +109,5 @@ router.post('/getPersonById', function (req, res, next) {
     CaseDAO.getPersonById(req, res);
 });
 
-/*审核人员信息*/
-router.post('/reviewPerson', function (req, res, next) {
-    CaseDAO.reviewPerson(req, res);
-});
 
 module.exports = router;

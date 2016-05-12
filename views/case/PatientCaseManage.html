@@ -17,6 +17,7 @@
         var chargeRecordID = -1;
         var chargeNumbers = 0;
         var carIdentification, taskCode, pcOrder, taskOrder;
+        var stationCode = '<%= stationCode %>';
         /*查看病历*/
         var viewFun = function (taskCode, pcOrder, carIdentification) {
             var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder;
@@ -355,6 +356,9 @@
 
         $(document).ready(function () {
             init();
+            if (stationCode != '101') { //隐藏分站选项
+                document.getElementById("stationDiv").style.visibility = "hidden";
+            }
             grid.datagrid('load', cxw.serializeObject($('#searchForm')));
         });
     </script>
@@ -383,11 +387,11 @@
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">患者姓名:</label>
                 <input style="width: 50%" name="patientName"/>
             </div>
-            <div style="width: 33%;display: inline-block;" id="stationDiv">
+            <div style="width: 33%;display: inline-block;">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病情:</label>
                 <input style="width: 50%" id="illnessCode" name="illnessCode"/>
             </div>
-            <div style="width: 33%;display: inline-block;float:right">
+            <div style="width: 33%;display: inline-block;float:right" id="stationDiv">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
                 <input style="width: 50%" id="station" name="station"/>
             </div>

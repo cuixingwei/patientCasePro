@@ -394,43 +394,49 @@ var savePatientCase = function (type) {
     $('#doctorSign').combobox('setValue', $('#doctorSign').combobox('getText'));
     $('#nurseSign').combobox('setValue', $('#nurseSign').combobox('getText'));
     $('#tellerSign').combobox('setValue', $('#tellerSign').combobox('getText'));
-    if (page == "add") {//添加病历
-        var url;
-        url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &caseNumbers= ' + caseNumbers + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + '&stationCode=' + stationCode;
-        $.post(url, cxw.serializeObject($('form')), function (data) {
-            if (data.flag == 1) {
-                caseNumbers = parseInt(caseNumbers) + 1; //添加成功后病历数增加1
-                $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
-                    if (r) {
-                        window.close();
-                    }
-                });
-            } else if (data.flag == 2) {
-                $.messager.alert('提示', '保存病历失败!', 'info');
-            } else {
-                $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-                    window.location.href = "/";
-                });
-            }
-        });
-    } else if (page == "edit") {//编辑病历
-        var url = '/cases/editPatientCase?taskCode=' + taskCode + ' &patientCaseOrder= ' + pcOrder + ' &carIdentification= ' + carIdentification;
-        $.post(url, cxw.serializeObject($('form')), function (data) {
-            if (data.flag == 1) {
-                $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
-                    if (r) {
-                        window.close();
-                    }
-                });
-            } else if (data.flag == 2) {
-                $.messager.alert('提示', '保存病历失败!', 'info');
-            } else {
-                $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-                    window.location.href = "/";
-                });
-            }
-        });
+    if ($('#doctor').combobox('getText') == "--请选择--" || $('#nurse').combobox('getText') == "--请选择--" || $('#driver').combobox('getText') == "--请选择--") {
+        $.messager.alert('提示', '请选择司机、医生、护士后再进行保存操作!', 'info');
+    } else {
+        if (page == "add") {//添加病历
+            var url;
+            url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &caseNumbers= ' + caseNumbers + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + '&stationCode=' + stationCode;
+            $.post(url, cxw.serializeObject($('form')), function (data) {
+                if (data.flag == 1) {
+                    $.cookie("refresh","1");
+                    caseNumbers = parseInt(caseNumbers) + 1; //添加成功后病历数增加1
+                    $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
+                        if (r) {
+                            window.close();
+                        }
+                    });
+                } else if (data.flag == 2) {
+                    $.messager.alert('提示', '保存病历失败!', 'info');
+                } else {
+                    $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                        window.location.href = "/";
+                    });
+                }
+            });
+        } else if (page == "edit") {//编辑病历
+            var url = '/cases/editPatientCase?taskCode=' + taskCode + ' &patientCaseOrder= ' + pcOrder + ' &carIdentification= ' + carIdentification;
+            $.post(url, cxw.serializeObject($('form')), function (data) {
+                if (data.flag == 1) {
+                    $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
+                        if (r) {
+                            window.close();
+                        }
+                    });
+                } else if (data.flag == 2) {
+                    $.messager.alert('提示', '保存病历失败!', 'info');
+                } else {
+                    $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                        window.location.href = "/";
+                    });
+                }
+            });
+        }
     }
+
 };
 /**
  * 点击未查选择框

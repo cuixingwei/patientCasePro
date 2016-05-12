@@ -111,8 +111,23 @@ router.get('/getDAge', function (req, res, next) {
 
 /*返回人员类型*/
 router.get('/getPersonType', function (req, res, next) {
+    var sql = 'select Code,NameM from AuSp120.tb_DPersonType ';
+    console.log(req.session.personType);
+    if (!string.isBlankOrEmpty(req.session.personType)) {
+        if (string.isEquals("11", req.session.personType)) {
+            sql += ' where Code not in (11,10)';
+        } else if (string.isEquals("1", req.session.personType)) {
+            sql += ' where Code not in (1,11,10)';
+        } else if (string.isEquals("2", req.session.personType)) {
+            sql += 'where Code not in (1,2,11,10)';
+        } else if (string.isEquals("4", req.session.personType)) {
+            sql += ' where Code not in (1,2,4,11,0,10)';
+        } else if (string.isEquals("5", req.session.personType)) {
+            sql += ' where Code not in (1,2,4,5,11,0,10)';
+        }
+    }
     var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DPersonType  ",
+        statement: sql,
         params: []
     };
 
@@ -498,7 +513,7 @@ router.get('/getDDiseaseReason', function (req, res, next) {
 router.get('/getPerson', function (req, res, next) {
     var personType = req.query.personType; //7医生，8护士，6司机
     var station_id = req.session.stationCode;
-    var sql = 'select 工号,姓名 from AuSp120.tb_MrUser where 人员类型=@personType and 有效标志=1 and Flag=1 ';
+    var sql = 'select 工号,姓名 from AuSp120.tb_MrUser where 人员类型=@personType and 审核状态=1 and 有效标志=1 ';
     var params = [{"name": "personType", "value": personType, "type": "tinyint"}];
     if (!string.isBlankOrEmpty(station_id) && !string.isEquals('101', station_id)) {
         sql += ' and 单位编码=@station_id';
@@ -532,29 +547,43 @@ router.get('/getPerson', function (req, res, next) {
 
 /*返回分站*/
 router.get('/getStations', function (req, res, next) {
-    var sqlData = {
-        statement: " SELECT 分站编码,分站名称 from AuSp120.tb_Station  ",
-        params: []
-    };
-
-    db.select(sqlData, function (error, results) {
-        if (error) {
-            console.log(error.message);
-        } else {
-            result = [];
-            for (var i = 0; i < results.length; i++) {
-                result.push({
-                    "id": results[i][0].value,
-                    "name": results[i][1].value
-                });
+        var sql = 'SELECT 分站编码,分站名称 from AuSp120.tb_Station where 有效标志=1  ';
+        if (string.isEquals("add", req.query.type)) {
+            if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
+                sql += " and 分站编码=@stationCode";
             }
-            if (string.isEquals('qb', req.query.type)) {
-                result.unshift(defaultQb);
-            }
-            res.json(result);
         }
-    });
-});
+        var sqlData = {
+            statement: sql,
+            params: [{"name": "stationCode", "value": req.session.stationCode, "type": "varchar"}]
+        };
+
+        db.select(sqlData, function (error, results) {
+            if (error) {
+                console.log(error.message);
+            } else {
+                result = [];
+                for (var i = 0; i < results.length; i++) {
+                    result.push({
+                        "id": results[i][0].value,
+                        "name": results[i][1].value
+                    });
+                }
+                if (string.isEquals('qb', req.query.type)) {
+                    result.unshift(defaultQb);
+                }
+                if (string.isEquals('101', req.session.stationCode) && string.isEquals("add", req.query.type)) {
+                    result.unshift({
+                        "id": "101",
+                        "name": "中心"
+                    });
+                }
+                res.json(result);
+            }
+        });
+    }
+)
+;
 
 /*返回车辆列表*/
 router.get('/getCars', function (req, res, next) {
@@ -566,7 +595,7 @@ router.get('/getCars', function (req, res, next) {
             statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance  where 分站编码=@station_id",
             params: [{"name": "station_id", "value": station_id, "type": "varchar"}]
         };
-    } else if (!string.isBlankOrEmpty(stationCode)) {
+    } else if (!string.isBlankOrEmpty(stationCode) && !string.isEquals("101", stationCode)) {
         sqlData = {
             statement: "select 车辆编码 id,实际标识 plateNo from AuSp120.tb_Ambulance where 分站编码=@station_id ",
             params: [{"name": "station_id", "value": stationCode, "type": "varchar"}]

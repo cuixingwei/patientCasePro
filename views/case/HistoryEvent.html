@@ -12,6 +12,7 @@
     <script src="lib/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript">
         var grid;
+        var stationCode = '<%= stationCode %>';
         /*添加病历*/
         var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder) {
             var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder;
@@ -216,9 +217,17 @@
             init();
             var stationCode = '<%= stationCode %>';
             if (stationCode != '101') { //隐藏分站选项
+                document.getElementById("dispatcherDiv").style.visibility = "hidden";
                 document.getElementById("stationDiv").style.visibility = "hidden";
             }
             grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+            setInterval(function () {
+                var refresh = $.cookie("refresh");
+                if (refresh == '1') {
+                    $.cookie("refresh", null);
+                    grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                }
+            }, 1000);
         });
     </script>
 </head>
@@ -274,7 +283,7 @@
                 <label style="width: 15%;text-align: right;display: inline-block;margin-right: 5px;">现场地址:</label>
                 <input style="width: 75%" name="localAddr"/>
             </div>
-            <div style="width: 33%;display: inline-block;float: right">
+            <div style="width: 33%;display: inline-block;float: right" id="dispatcherDiv">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">调度员:</label>
                 <input style="width: 50%" id="dispatcher" name="dispatcher"/>
             </div>

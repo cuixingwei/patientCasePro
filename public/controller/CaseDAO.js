@@ -21,15 +21,7 @@ exports.getHistoryEvent = function (req, res) {
     var taskCode = req.body.taskCode;
     var page = req.body.page;
     var rows = req.body.rows;
-
-
-    var station_id = req.session.stationCode;
-    console.log('分站编码:' + station_id);
-    if (string.isEquals('101', station_id)) {
-        stationCode = req.body.station;
-    } else {
-        stationCode = station_id;
-    }
+    var stationCode;
 
     var sql = "select isnull(pc.病历个数,0),convert(varchar(20),a.开始受理时刻,20) 受理时刻,a.呼救电话,m.姓名,a.现场地址,pc.姓名,am.实际标识,pc.司机,   " +
         " tr.NameM outResult,t.任务编码,t.任务序号,pc.性别,pc.年龄,pc.病历序号,t.分站编码  from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    " +
@@ -47,9 +39,16 @@ exports.getHistoryEvent = function (req, res) {
         "name": "endTime",
         "value": endTime
     }];
-    if (!string.isBlankOrEmpty(stationCode) && !string.isEquals('qb', stationCode)) {
-        sql += " and t.分站编码=@stationCode";
+
+    if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
+        stationCode = req.session.stationCode;
+        sql += ' and t.分站编码=@stationCode';
         params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
+    } else {
+        if (!string.isBlankOrEmpty(stationCode) && !string.isEquals('qb', stationCode)) {
+            sql += " and t.分站编码=@stationCode";
+            params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
+        }
     }
     if (!string.isBlankOrEmpty(carCode) && !string.isEquals('qb', carCode)) {
         sql += " and t.车辆编码=@carCode";
@@ -132,7 +131,24 @@ exports.getPersons = function (req, res) {
     var page = req.body.page;
     var rows = req.body.rows;
 
-    var sql = 'select ID,工号,姓名,密码,部门名称,单位编码,UserMark,人员类型,有效标志,在线标志,Flag,科室编码,驾驶证编码 from AuSp120.tb_MrUser where 姓名 like @username ';
+    var sql = 'select ID,工号,姓名,密码,部门名称,单位编码,UserMark,人员类型,审核状态,在线标志,有效标志,科室编码,驾驶证编码 from AuSp120.tb_MrUser where 姓名 like @username ';
+    if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode.trim())) {
+        var stationCode = req.session.stationCode;
+        sql += ' and 单位编码=@stationCode ';
+    }
+    if (!string.isBlankOrEmpty(req.session.personType)) {
+        if (string.isEquals("11", req.session.personType)) {
+            sql += ' and 人员类型 not in (11,10)';
+        } else if (string.isEquals("1", req.session.personType)) {
+            sql += ' and 人员类型 not in (1,11,10)';
+        } else if (string.isEquals("2", req.session.personType)) {
+            sql += ' and 人员类型 not in (1,2,11,10)';
+        } else if (string.isEquals("4", req.session.personType)) {
+            sql += ' and 人员类型 not in (1,2,4,11,0,10)';
+        } else if (string.isEquals("5", req.session.personType)) {
+            sql += ' and 人员类型 not in (1,2,4,5,11,0,10)';
+        }
+    }
     if (!string.isBlankOrEmpty(userId)) {
         userId = userId.trim();
         sql += ' and 工号=@userId ';
@@ -150,7 +166,7 @@ exports.getPersons = function (req, res) {
         sql += ' and 单位编码=@station';
     }
     if (!string.isBlankOrEmpty(flag)) {
-        sql += " and  Flag=@flag";
+        sql += " and  有效标志=@flag";
     }
     if (!string.isBlankOrEmpty(departmentCode)) {
         sql += " and  科室编码=@departmentCode";
@@ -163,7 +179,11 @@ exports.getPersons = function (req, res) {
         "name": "station",
         "value": station,
         "type": "varchar"
-    }, {"name": "departmentCode", "value": departmentCode, "type": "int"}];
+    }, {"name": "departmentCode", "value": departmentCode, "type": "int"}, {
+        "name": "stationCode",
+        "value": stationCode,
+        "type": "varchar"
+    }];
 
     var sqlData = {
         statement: sql,
@@ -506,16 +526,16 @@ exports.getPatientCases = function (req, res) {
         'pc.司机,pc.分站编码,pc.车辆标识,pc.Flag,pc.转归编码,pc.科室,dp.NameM,di.NameM,ddc.NameM,ddr.NameM,   ' +
         'dill.NameM, ddcs.NameM, dco.NameM, ddp.NameM,dr.NameM,s.分站名称,CONVERT(varchar(20),a.开始受理时刻,120),pc.收费标志,pc.收费金额,' +
         'pc.医生签名,pc.护士签名,pc.告知人签字, CONVERT(varchar(20),pc.签字时间,120),CONVERT(varchar(20),pc.告知时间,120),pc.病历填写人,pc.病历提供人,pc.其他处理,pc.其他用药,pc.责任人签字,t.任务序号,dna.NameM  ' +
-        'from AuSp120.tb_PatientCase  pc     ' +
+        'from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    ' +
+        'left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    ' +
+        'left outer join AuSp120.tb_EventV e on e.事件编码=a.事件编码    ' +
+        'LEFT outer join  AuSp120.tb_PatientCase  pc   on pc.任务编码=t.任务编码 and am.实际标识=pc.车辆标识    ' +
         'left outer join AuSp120.tb_DProfession dp on dp.Code=pc.职业编码    left outer join AuSp120.tb_DIdentity di on di.Code=pc.身份编码    ' +
         'left outer join AuSp120.tb_DDiseaseClass ddc on ddc.Code=pc.疾病科别编码    left outer join AuSp120.tb_DDiseaseReason ddr on ddr.Code=pc.病因编码    ' +
         'left outer join AuSp120.tb_DILLState dill on dill.Code=pc.病情编码    left outer join AuSp120.tb_DDiseaseClassState ddcs on ddcs.Code=pc.分类统计编码    ' +
         'left outer join AuSp120.tb_DCooperate dco on dco.Code=pc.病家合作编码    left outer join AuSp120.tb_DDeathProve ddp on ddp.Code=pc.死亡证明编码 ' +
         'left outer join ausp120.tb_DFolk df on df.Code=pc.民族编码 left outer join ausp120.tb_DResult dr on dr.Code=pc.救治结果编码  ' +
-        'left outer join ausp120.tb_Station s on s.分站编码=pc.分站编码  left outer join ausp120.tb_Ambulance am on am.实际标识=pc.车辆标识     ' +
-        'left outer join ausp120.tb_Task t on t.车辆编码=am.车辆编码 and t.任务编码=pc.任务编码    ' +
-        'left outer join ausp120.tb_AcceptDescript a on a.事件编码=t.事件编码 and t.受理序号=a.受理序号  ' +
-        'left outer join ausp120.tb_DNationality dna on dna.Code=pc.国籍编码  ';
+        'left outer join ausp120.tb_Station s on s.分站编码=pc.分站编码  left outer join ausp120.tb_DNationality dna on dna.Code=pc.国籍编码  ';
 
     if (string.isEquals('grid', req.query.type)) {
         sql += ' where a.开始受理时刻 between @startTime and @endTime ';
@@ -529,14 +549,24 @@ exports.getPatientCases = function (req, res) {
         if (!string.isBlankOrEmpty(illnessCode)) {
             sql += ' and pc.病情编码=@illnessCode';
         }
-        if (!string.isBlankOrEmpty(station)) {
-            sql += ' and pc.分站编码=@station';
-        }
+
         if (!string.isBlankOrEmpty(treatResultCode)) {
             sql += ' and pc.救治结果编码=@treatResultCode';
         }
+        if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
+            station = req.session.stationCode;
+            sql += ' and pc.分站编码=@station';
+        } else {
+            if (!string.isBlankOrEmpty(station)) {
+                sql += ' and pc.分站编码=@station';
+            }
+        }
     } else {
         sql += 'where  pc.任务编码=@taskCode and pc.序号=@patientCaseOrder and pc.车辆标识=@carIdentification';
+        if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
+            station = req.session.stationCode;
+            sql += ' and pc.分站编码=@station';
+        }
     }
     var params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
         "name": "startTime",
@@ -1269,9 +1299,13 @@ exports.addPerson = function (req, res) {
     var departmentCode = req.body.departmentCode;
     var username = req.body.username;
     var userId = req.body.userId;
+    var valid = req.body.valid;
     var flag = req.body.flag;
     var password = req.body.password;
     var driverCode = req.body.driverCode;
+    if (string.isBlankOrEmpty(password)) {
+        password = '';
+    }
     var userMark;
     if (string.isBlankOrEmpty(station)) { //默认中心
         station = '101';
@@ -1327,22 +1361,30 @@ exports.addPerson = function (req, res) {
         "name": "userId",
         "value": userId,
         "type": "varchar"
-    }, {"name": "flag", "value": flag, "type": "int"}, {
+    }, {"name": "valid", "value": valid, "type": "int"}, {
         "name": "password",
         "value": password,
         "type": "varchar"
-    }, {"name": "driverCode", "value": driverCode, "type": "int"}, {
+    }, {"name": "driverCode", "value": driverCode, "type": "varchar"}, {
         "name": "createTime",
         "value": util.getCurrentTime(),
         "type": "varchar"
-    }, {"name": "id", "value": id, "type": "int"}];
+    }, {"name": "id", "value": id, "type": "int"}, {
+        "name": "qualificationCode",
+        "value": req.body.qualificationCode,
+        "type": "varchar"
+    }, {"name": "licenceCode", "value": req.body.licenceCode, "type": "varchar"}, {
+        "name": "trainCode",
+        "value": req.body.trainCode,
+        "type": "varchar"
+    }, {"name": "flag", "value": flag, "type": "int"}];
     var sql = '';
     if (string.isEquals('1', operate)) {
-        sql = 'insert into ausp120.tb_MrUser (工号,姓名,密码,部门名称,单位编码,创建日期,UserMark,人员类型,有效标志,Flag,科室编码,驾驶证编码,科室) values(' +
-            '@userId,@username,@password,@stationName,@station,@createTime,@userMark,@personTypeCode,0,@flag,@departmentCode,@driverCode,@departmentName)';
+        sql = 'insert into ausp120.tb_MrUser (工号,姓名,密码,部门名称,单位编码,创建日期,UserMark,人员类型,有效标志,科室编码,驾驶证编码,科室,资格证编码,执业证编码,培训证编码,审核状态) values(' +
+            '@userId,@username,@password,@stationName,@station,@createTime,@userMark,@personTypeCode,@flag,@departmentCode,@driverCode,@departmentName,@qualificationCode,@licenceCode,@trainCode,@valid)';
     } else if (string.isEquals('2', operate) && !string.isBlankOrEmpty(id)) {
-        sql = 'update ausp120.tb_MrUser set 工号=@userId,姓名=@username,密码=@password,部门名称=@stationName,单位编码=@station,UserMark=@userMark,' +
-            '人员类型=@personTypeCode,Flag=@flag,科室编码=@departmentCode,驾驶证编码=@driverCode,科室=@departmentName where ID=@id';
+        sql = 'update ausp120.tb_MrUser set 工号=@userId,姓名=@username,密码=@password,部门名称=@stationName,单位编码=@station,UserMark=@userMark,审核状态=@valid,' +
+            '人员类型=@personTypeCode,有效标志=@flag,科室编码=@departmentCode,驾驶证编码=@driverCode,科室=@departmentName,资格证编码=@qualificationCode,执业证编码=@licenceCode,培训证编码=@trainCode where ID=@id';
     }
     var sqlData = {
         statement: sql,
@@ -1364,7 +1406,7 @@ exports.addPerson = function (req, res) {
 /*获取指定人员信息*/
 exports.getPersonById = function (req, res) {
     var id = req.query.id.trim();
-    var sql = 'select ID,工号,姓名,密码,部门名称,单位编码,UserMark,人员类型,有效标志,在线标志,Flag,科室编码,驾驶证编码 from AuSp120.tb_MrUser where ID=@id ';
+    var sql = 'select ID,工号,姓名,密码,部门名称,单位编码,UserMark,人员类型,有效标志,在线标志,Flag,科室编码,驾驶证编码,资格证编码,执业证编码,培训证编码,审核状态 from AuSp120.tb_MrUser where ID=@id ';
     var params = [{"name": "id", "value": id, "type": "int"}];
     var sqlData = {
         statement: sql,
@@ -1385,36 +1427,18 @@ exports.getPersonById = function (req, res) {
                     "stationCode": results[i][5].value,
                     "personType": results[i][6].value,
                     "personTypeCode": results[i][7].value,
-                    "valid": results[i][8].value,
+                    "flag": results[i][8].value,
                     "online": results[i][9].value,
-                    "flag": results[i][10].value,
+                    "valids": results[i][10].value,
                     "departmentCode": results[i][11].value,
-                    "driverCode": results[i][12].value
+                    "driverCode": results[i][12].value,
+                    "qualificationCode": results[i][13].value,
+                    "licenceCode": results[i][14].value,
+                    "trainCode": results[i][15].value,
+                    "valid": results[i][16].value
                 });
             }
             res.json(result);
-        }
-    });
-};
-
-/*审核人员信息*/
-exports.reviewPerson = function (req, res) {
-    var id = req.query.id.trim();
-    var sql = 'update ausp120.tb_MrUser set 有效标志=1 where ID=@id ';
-    var params = [{"name": "id", "value": id, "type": "int"}];
-    var sqlData = {
-        statement: sql,
-        params: params
-    };
-    db.change(sqlData, function (err, results) {
-        if (results > 0) {
-            res.json({
-                success: true //成功
-            });
-        } else {
-            res.json({
-                success: false //失败
-            });
         }
     });
 };

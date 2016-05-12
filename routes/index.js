@@ -128,7 +128,7 @@ router.get('/PatientCaseManage', function (req, res, next) {
 });
 /*人员管理*/
 router.get('/PersonManage', function (req, res, next) {
-    res.render('case/PersonManage', {personType: req.session.personType});
+    res.render('case/PersonManage', {personType: req.session.personType, stationCode: req.session.stationCode});
 });
 
 /*病历详情页*/
