@@ -569,6 +569,12 @@ router.get('/getStations', function (req, res, next) {
                         "name": results[i][1].value
                     });
                 }
+                if (string.isEquals('101', req.session.stationCode) && string.isEquals("person", req.query.page)) {
+                    result.unshift({
+                        "id": "101",
+                        "name": "中心"
+                    });
+                }
                 if (string.isEquals('qb', req.query.type)) {
                     result.unshift(defaultQb);
                 }

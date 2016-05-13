@@ -45,11 +45,13 @@ exports.getHistoryEvent = function (req, res) {
         sql += ' and t.分站编码=@stationCode';
         params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
     } else {
+        stationCode = req.body.station;
         if (!string.isBlankOrEmpty(stationCode) && !string.isEquals('qb', stationCode)) {
             sql += " and t.分站编码=@stationCode";
             params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
         }
     }
+    console.log("stationCode:"+stationCode);
     if (!string.isBlankOrEmpty(carCode) && !string.isEquals('qb', carCode)) {
         sql += " and t.车辆编码=@carCode";
         params.push({"name": "carCode", "value": carCode, "type": "varchar"});
@@ -1342,6 +1344,18 @@ exports.addPerson = function (req, res) {
             break;
         case '10':
             userMark = '其他';
+            break;
+            case '1':
+            userMark = '中心管理员';
+            break;
+        case '2':
+            userMark = '中心领导';
+            break;
+        case '4':
+            userMark = '分站管理员';
+            break;
+        case '5':
+            userMark = '分站领导';
             break;
     }
 
