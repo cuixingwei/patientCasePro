@@ -280,7 +280,7 @@ exports.getTaskByID = function (req, res) {
 
     var sql = 'select t.调度员编码,t.分站编码,t.车辆编码,convert(varchar(20),t.出车时刻,120),convert(varchar(20),t.到达现场时刻,120),convert(varchar(20),t.离开现场时刻,120),' +
         'convert(varchar(20),t.到达医院时刻,120),convert(varchar(20),t.完成时刻,120),    ' +
-        'a.联系电话,a.联系人,a.现场地址,a.等车地址,am.实际标识 from AuSp120.tb_Task t left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    ' +
+        'a.联系电话,a.联系人,a.现场地址,a.等车地址,am.实际标识 from AuSp120.tb_TaskV t left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    ' +
         'left outer join AuSp120.tb_AcceptDescriptV a on a.受理序号=t.受理序号 and a.事件编码=t.事件编码   ' +
         'where t.任务序号=@taskOrder and t.任务编码=@taskCode ';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
@@ -819,10 +819,7 @@ exports.addPatientCase = function (req, res, flag) {
     if (!string.isBlankOrEmpty(patientCaseNumbers)) {
         patientCaseNumbers = parseInt(req.query.caseNumbers) + 1;
     }
-    var stationCode = req.query.stationCode; //分站编码
-    if (!string.isBlankOrEmpty(stationCode)) {
-        stationCode = req.query.stationCode.trim();
-    }
+
     var stationAlterFlag = '1';//分站修改标志
     var centerAlterFlag = '0';//中心修改标志
     var formComplete = '否'; //表单完成
@@ -863,6 +860,12 @@ exports.addPatientCase = function (req, res, flag) {
     if (!string.isBlankOrEmpty(patientCaseOrder)) {
         patientCaseOrder = patientCaseOrder.trim();
     }
+    var stationCode = req.query.stationCode; //分站编码
+    if (!string.isBlankOrEmpty(stationCode)) {
+        stationCode = stationCode.trim();
+    }
+
+    console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID+';stationCode:'+stationCode);
     var sql;
     var params;
     params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
@@ -953,6 +956,8 @@ exports.addPatientCase = function (req, res, flag) {
         "name": "username", "value": username, "type": "varchar"
     }];
 
+
+
     if (flag == 1) {
         //插入病历主表
         sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,身份编码,职业编码,民族编码,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
@@ -969,7 +974,6 @@ exports.addPatientCase = function (req, res, flag) {
         };
         sqlBatch.push(sqlData);
         //插入病历附表
-        console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID);
         sql = 'insert into AuSp120.tb_PatientSchedule (任务编码,病例序号,BPH,BPL,P,R,瞳孔左,瞳孔右,一般情况,神志, 口唇紫绀,心脏,肺部,腹部,' +
             '脊柱,四肢,其它 ,治疗措施,分站编码,车辆标识,循环分值,呼吸分值,胸腹分值,运动分值,言语分值,CRAMS,T,到达病人身边时间,心电图,简易血糖仪,对光反射,头颈,胸部) values (@taskCode,@patientCaseNumbers,' +
             '@BPH,@BPL,@P,@R,@leftEye,@rightEye,@general,@senseSchedule,@kczg,@heart,@lung,@abdomen,@spine,@limb,@others,' +
