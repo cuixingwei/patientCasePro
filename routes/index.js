@@ -151,7 +151,8 @@ router.get('/patientCaseDetail', function (req, res, next) {
         carIdentification: req.query.carIdentification,
         username: req.session.username,
         pcOrder: req.query.pcOrder,
-        taskOrder: req.query.taskOrder
+        taskOrder: req.query.taskOrder,
+        stationCode: req.query.stationCode
     });
 });
 

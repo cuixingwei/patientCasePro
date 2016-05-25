@@ -26,3 +26,22 @@ function isBlankOrEmpty(data) {
         return false;
     }
 }
+
+/**
+ * 计算与当前时间得差是否大于2两（48小时）
+ * @param recordTime
+ */
+function isPassTwoDay(recordTime) {
+    recordTime = recordTime.replace(/-/g, "/");
+    recordTime = new Date(recordTime);
+    var currentTime = getCurrentTime().replace(/-/g, "/");
+    currentTime = new Date(currentTime);
+    var date = 0; //时间差
+    date = currentTime - recordTime;
+    var hours = Math.floor(date / (3600 * 1000));
+    if (hours > 48) {
+        return true;
+    } else {
+        return false;
+    }
+}

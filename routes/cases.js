@@ -109,5 +109,10 @@ router.post('/getPersonById', function (req, res, next) {
     CaseDAO.getPersonById(req, res);
 });
 
+/*获取病历修改记录*/
+router.post('/getPatientCaseAlterRecord', function (req, res, next) {
+    CaseDAO.getPatientCaseAlterRecord(req, res);
+});
+
 
 module.exports = router;

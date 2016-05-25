@@ -34,7 +34,7 @@
             $.post(URL, function (result) {
                 if (result.length > 0) {
                     var data = result[0];
-                    var BP = data.BPH + '/' + data.BPL;
+                    var BP = (data.BPH || '') + '/' + (data.BPL || '');
                     $("#BP").html(BP);
                     $("#P").html(data.P);
                     $("#R").html(data.R);
@@ -67,6 +67,7 @@
                         schedule += '&nbsp;简易血糖仪';
                     }
                     $("#schedule").html(schedule);
+                    $("#arrivePatientTime").html(data.arrivePatientTime);
                 }
             });  //end 加载病历附表
 
@@ -176,6 +177,7 @@
                     $("#signTime").html(data.signTime);
                     $("#responsiblePersonSign").html(data.responsiblePersonSign);
                     $("#tellerSign").html(data.tellerSign);
+                    $("#patientCode").html(data.patientCode);
                 }
             }); //结束加载病历信息
         });
@@ -186,11 +188,11 @@
     <caption style="font-size:20px;"><b>三门峡市院前急救病历</b></caption>
     <tr>
         <td colspan="25" style="border:none">
-            <div style="display: inline-block;width:25%;text-align: center">
+            <div style="display: inline-block;width:23%;text-align: center">
                 <span>医院(&nbsp;</span><span id="stationSpan"></span>
                 <span>号站)</span>
             </div>
-            <div style="display: inline-block;width:45%;">
+            <div style="display: inline-block;width:43%;text-align: left">
                 <span id="cYear" style="display: inline-block;width: 50px;"></span>
                 <span>年</span>
                 <span id="cMonth" style="display: inline-block;width: 50px;"></span>
@@ -198,9 +200,9 @@
                 <span id="cDay" style="display: inline-block;width: 50px;"></span>
                 <span>日</span>
             </div>
-            <div style="display: inline-block;width:20%;text-align:left ">
-                <span>编号:</span>
-                <span></span>
+            <div style="display: inline-block;width:30%;text-align:left ">
+                <span>病历编码:</span>
+                <span id="patientCode"></span>
             </div>
         </td>
     </tr>
@@ -236,12 +238,16 @@
             <span id="sex"></span>
         </td>
         <td colspan="5">
-            <span>年龄</span>
+            <span>年龄:</span>
             <span id="age"></span>
         </td>
-        <td colspan="10">
+        <td colspan="5">
             <span>救治地点:</span>
             <span id="addrAndPhone"></span>
+        </td>
+        <td colspan="5">
+            <span>到达病人身边时间</span><br>
+            <span id="arrivePatientTime"></span>
         </td>
     </tr>
     <tr>
@@ -254,7 +260,7 @@
             <span id="nationality"></span>
         </td>
         <td colspan="5">
-            <span>病历提供人:</span>
+            <span>病史提供人:</span>
             <span id="caseProvider"></span>
         </td>
         <td colspan="10">
@@ -596,7 +602,7 @@
     </tr>
     <tr>
         <td colspan="25" style="border:none" align="right">
-            <span>紧急医疗救援中心监制</span>
+            <span>三门峡市120急救指挥中心监制</span>
         </td>
     </tr>
 </table>

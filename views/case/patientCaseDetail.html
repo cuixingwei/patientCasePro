@@ -60,13 +60,16 @@
             display: inline-block;
         }
 
-        .input_2 {
-            width: 50%;
+        .red {
+            color: red;
         }
 
+        .none {
+            display: none;
+        }
     </style>
     <script>
-        var stationCode;
+        var stationCode = '<%= stationCode %>';
         var page = '<%= page %>';
         var taskCode = '<%= taskCode %>';
         var taskOrder = '<%= taskOrder %>';
@@ -78,9 +81,17 @@
         var cureMeasureRecord = [];//编辑，查看时
         var DMedications = [];
         var medicationsRecord = [];//编辑，查看时
+        var currentTime = getCurrentTime();
+        var grid;
         $(document).ready(function () {
             init();
+            $("#alterDiv").addClass("none");//默认隐藏修改记录
             loadTask(); //加载任务信息
+            if (page == 'add') { //添加病历时
+                ss = stationCode.substr(1);
+                $("#stationSpan").html(ss);
+                $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1]);
+            }
 
             if (page == 'edit') {//编辑病例信息
                 loadPatientCase(taskCode, carIdentification, pcOrder);
@@ -88,6 +99,47 @@
                 loadCureMeasure(taskCode, carIdentification, pcOrder);
                 loadMedicationRecord(taskCode, carIdentification, pcOrder);
                 loadILLTeller(taskCode, carIdentification, pcOrder);
+                $("#patientCode").attr("readonly", "readonly");
+                $("#alterDiv").removeClass("none");//编辑病历时显示修改记录
+                grid = $('#grid').datagrid(
+                        {
+                            url: '/cases/getPatientCaseAlterRecord?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&pcOrder=' + pcOrder,
+                            pagePosition: 'bottom',
+                            pagination: true,
+                            striped: true,
+                            singleSelect: true,
+                            fitColumns: true,
+                            nowrap: false,
+                            rownumbers: true,
+                            pageSize: 20,
+                            pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                            columns: [[{
+                                field: 'alterName',
+                                title: '修改项',
+                                width: "15%",
+                                align: 'center'
+                            }, {
+                                field: 'oldValue',
+                                title: '原值',
+                                width: "18%",
+                                align: 'center'
+                            }, {
+                                field: 'newValues',
+                                title: '新值',
+                                width: "18%",
+                                align: 'center'
+                            }, {
+                                field: 'alterUsername',
+                                title: '修改人',
+                                width: "18%",
+                                align: 'center'
+                            }, {
+                                field: 'alterTime',
+                                title: '修改时间',
+                                width: "28%",
+                                align: 'center'
+                            }]]
+                        });
             }
             if (page == 'view') {
                 loadPatientCase(taskCode, carIdentification, pcOrder);
@@ -96,6 +148,14 @@
                 loadMedicationRecord(taskCode, carIdentification, pcOrder);
                 loadILLTeller(taskCode, carIdentification, pcOrder);
                 $("#save_Btn").hide();
+                $("#patientCode").attr("readonly", "readonly");
+            }
+
+            if ($("#medications").html() == '无') { //如果无标红
+                $("#medications").addClass("red");
+            }
+            if ($("#handles").html() == '无') { //如果无标红
+                $("#handles").addClass("red");
             }
         });
     </script>
@@ -105,11 +165,19 @@
      data-options="fit:true">
     <form>
         <div class="tr_height">
-            <span><b>患者信息</b></span>
+            <div style="display: inline-block;width: 70%"><b>患者信息</b></div>
+            <div style="display: inline-block;width: 20%;text-align: right">
+                <span>病历编号:</span>
+                <span id="stationSpan"></span>
+                <span>-</span>
+                <span id="yearMonthSpan"></span>
+                <span>-</span>
+                <span><input name="patientCode" id="patientCode" style="width: 40px;"></span>
+            </div>
         </div>
         <div class="div_odd">
             <div class="div_3_left">
-                <label class="label_3">姓名</label>
+                <label class="label_3" style="color: red;">姓名</label>
                 <input name="patientName" class="input_3"/>
             </div>
             <div class="div_3">
@@ -151,7 +219,7 @@
                 </select>
             </div>
             <div class="div_3_right">
-                <label class="label_3">病历提供人</label>
+                <label class="label_3">病史提供人</label>
                 <input name="caseProvider" class="input_3"/>
             </div>
         </div>
@@ -227,7 +295,7 @@
         </div>
         <div class="div_odd">
             <div class="div_3_left">
-                <label class="label_3">疾病分类</label>
+                <label class="label_3" style="color: red;">疾病分类</label>
                 <input name="classCode" id="classCode" style="width: 50%;"/>
             </div>
             <div class="div_3">
@@ -435,7 +503,7 @@
         </div>
         <div class="div_even">
             <label class="label_1">处理</label>
-            <button type="button" id="handleBtn">选择</button>
+            <button type="button" id="handleBtn">选择</button><input type="hidden" id="handleString" name="handleString">
         </div>
         <div class="div_odd">
             <span id="handles">无</span>
@@ -446,7 +514,7 @@
         </div>
         <div class="div_odd">
             <label class="label_1">用药</label>
-            <button type="button" id="medicationBtn">选择</button>
+            <button type="button" id="medicationBtn">选择</button><input type="hidden" id="medicationString" name="medicationString">
         </div>
         <div class="div_even">
             <span id="medications">无</span>
@@ -475,13 +543,13 @@
             <label><b>病情告知</b></label>
         </div>
         <div class="div_even">
-            <input type="checkbox" name="truthTelling" value="1"><span>1、对以上救治措施之情</span>
+            <input type="checkbox" name="truthTelling" value="1"><span>1、对以上救治措施知情</span>
         </div>
         <div class="div_odd">
             <input type="checkbox" name="truthTelling" value="2"><span>2、在转运途中，患者病情可随时加重或出现其他危急情况</span>
         </div>
         <div class="div_even">
-            <input type="checkbox" name="truthTelling" value="3"><span>3、患者病情危重，在转运途中随时可能发送呼吸、心跳</span>
+            <input type="checkbox" name="truthTelling" value="3"><span>3、患者病情危重，在转运途中随时可能发生呼吸、心跳停止</span>
         </div>
         <div class="div_odd">
             <input type="checkbox" name="truthTelling" value="4"><span>4、患者要求不去医院进一步治疗，并同意救护车返回</span>
@@ -536,6 +604,10 @@
                onclick="javascript:savePatientCase();">保存</a>
         </div>
     </form>
+    <div style="width: 90%;margin-top: 20px;border: 2px;margin: 0 auto" id="alterDiv" >
+        <p><b>病历修改记录</b></p>
+        <table id="grid" data-options="border:false" style="width:100%;height:250px"></table>
+    </div>
 </div>
 <div id="handle_window" title="选择处理措施" style="width:500px;height:300px;display: none;"
      data-options="modal:true">
@@ -545,7 +617,7 @@
         </div>
     </form>
 </div>
-<div id="medication_window" title="选择用药" style="width:500px;height:300px;display: none;"
+<div id="medication_window" title="选择用药" style="width:700px;height:470px;display: none;"
      data-options="modal:true">
     <form>
         <div id="medicationRecordDiv" style="padding: 10px;">
@@ -553,5 +625,6 @@
         </div>
     </form>
 </div>
+
 </body>
 </html>

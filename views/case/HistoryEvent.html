@@ -14,8 +14,8 @@
         var grid;
         var stationCode = '<%= stationCode %>';
         /*添加病历*/
-        var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder;
+        var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder,stationCode) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder+ '&stationCode=' + stationCode;
             window.open(url);
         };
         /*查看病历*/
@@ -163,10 +163,17 @@
                             width: "6%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                return cxw
-                                        .formatString(
-                                        '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
-                                        row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder);
+                                if (isPassTwoDay(row.acceptStartTime)) { //禁用添加按钮
+                                    return cxw
+                                            .formatString(
+                                            '<span><b>病历填写日期过期</b><span>');
+                                } else {
+                                    return cxw
+                                            .formatString(
+                                            '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
+                                            row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder,row.stationCode);
+                                }
+
                             }
                         }]],
                         toolbar: '#toolbar',

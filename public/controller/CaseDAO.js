@@ -23,41 +23,47 @@ exports.getHistoryEvent = function (req, res) {
     var rows = req.body.rows;
     var stationCode;
 
-    var sql = "select isnull(pc.病历个数,0),convert(varchar(20),a.开始受理时刻,20) 受理时刻,a.呼救电话,m.姓名,a.现场地址,pc.姓名,am.实际标识,pc.司机,   " +
-        " tr.NameM outResult,t.任务编码,t.任务序号,pc.性别,pc.年龄,pc.病历序号,t.分站编码  from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    " +
+    var sql = "select convert(varchar(20),a.开始受理时刻,20) 受理时刻,a.呼救电话,m.姓名,a.现场地址,am.实际标识,tr.NameM outResult,t.任务编码,t.任务序号,t.分站编码,t.车辆编码,t.调度员编码    " +
+        "into #mm from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    " +
         "left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    " +
         "left outer join AuSp120.tb_EventV e on e.事件编码=a.事件编码    left outer join AuSp120.tb_DTaskResult tr on tr.Code=t.结果编码    " +
-        "left outer join (select	任务编码,车辆标识,COUNT(*) 病历个数,姓名 = (stuff((select ',' + 姓名  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,'')),    " +
-        "性别 = (stuff((select ',' + 性别  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,'')),    " +
-        "年龄 = (stuff((select ',' + 年龄  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,''))," +
-        "病历序号 = (stuff((select ',' + cast(序号 as varchar(20))  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,''))," +
-        "随车医生 = (stuff((select ',' + 随车医生  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,'')),       " +
-        "随车护士 = (stuff((select ',' + 随车护士  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,'')),    " +
-        "司机 = (stuff((select ',' + 司机  from ausp120.tb_PatientCase where 任务编码 = pc.任务编码 and 车辆标识=pc.车辆标识 for xml path('')),1,1,''))     from ausp120.tb_PatientCase pc 		group by pc.任务编码,pc.车辆标识 ) pc on pc.任务编码=t.任务编码 and am.实际标识=pc.车辆标识    left outer join AuSp120.tb_MrUser m on t.调度员编码=m.工号    " +
-        "where e.事件性质编码=1 and a.开始受理时刻 between @startTime and @endTime  ";
+        "left outer join AuSp120.tb_MrUser m on t.调度员编码=m.工号       " +
+        "where e.事件性质编码=1 and a.开始受理时刻 between @startTime and @endTime  " +
+        "select	pc.任务编码,pc.车辆标识,COUNT(*) 病历个数,姓名 = ausp120.GetPatientName(pc.任务编码,pc.车辆标识),    " +
+        "性别 = ausp120.GetPatientSex(pc.任务编码,pc.车辆标识),年龄 = ausp120.GetPatientAge(pc.任务编码,pc.车辆标识),        " +
+        "病历序号 = ausp120.GetPatientOrder(pc.任务编码,pc.车辆标识),随车医生 = ausp120.GetPatientDoctor(pc.任务编码,pc.车辆标识),       " +
+        " 随车护士 = ausp120.GetPatientNurse(pc.任务编码,pc.车辆标识),司机 = ausp120.GetPatientDriver(pc.任务编码,pc.车辆标识)    into #pc  " +
+        "from ausp120.tb_PatientCase pc  left outer join ausp120.tb_Ambulance am on am.实际标识=pc.车辆标识     " +
+        "left outer join ausp120.tb_TaskV t on t.任务编码=pc.任务编码 and t.车辆编码=am.车辆编码    " +
+        "left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    " +
+        "where a.开始受理时刻 between @startTime and @endTime  group by pc.任务编码,pc.车辆标识 " +
+        "select ISNULL(pc.病历个数,0),mm.受理时刻,mm.呼救电话,mm.姓名,mm.现场地址,pc.姓名,mm.实际标识,    " +
+        "pc.司机,mm.outResult,mm.任务编码,mm.任务序号,pc.性别,pc.年龄,pc.病历序号,mm.分站编码   " +
+        " from #mm mm	left outer join #pc pc on pc.任务编码=mm.任务编码 and pc.车辆标识=mm.实际标识  where 1=1    ";
+    var sqlEnd = " order by mm.受理时刻 desc drop table #pc,#mm";
     var params = [{"name": "startTime", "value": startTime}, {
         "name": "endTime",
         "value": endTime
     }];
 
+    stationCode = req.session.stationCode;
     if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
-        stationCode = req.session.stationCode;
-        sql += ' and t.分站编码=@stationCode';
+        sql += ' and mm.分站编码=@stationCode';
         params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
     } else {
         stationCode = req.body.station;
         if (!string.isBlankOrEmpty(stationCode) && !string.isEquals('qb', stationCode)) {
-            sql += " and t.分站编码=@stationCode";
+            sql += " and mm.分站编码=@stationCode";
             params.push({"name": "stationCode", "value": stationCode, "type": "varchar"});
         }
     }
-    console.log("stationCode:"+stationCode);
+    console.log("stationCode:" + stationCode);
     if (!string.isBlankOrEmpty(carCode) && !string.isEquals('qb', carCode)) {
-        sql += " and t.车辆编码=@carCode";
+        sql += " and mm.车辆编码=@carCode";
         params.push({"name": "carCode", "value": carCode, "type": "varchar"});
     }
     if (!string.isBlankOrEmpty(dispatcher) && !string.isEquals('qb', dispatcher)) {
-        sql += " and t.调度员编码=@dispatcher";
+        sql += " and mm.调度员编码=@dispatcher";
         params.push({"name": "dispatcher", "value": dispatcher, "type": "tinyint"});
     }
     if (!string.isBlankOrEmpty(driver)) {
@@ -76,18 +82,17 @@ exports.getHistoryEvent = function (req, res) {
         params.push({"name": "doctor", "value": doctor, "type": "varchar"});
     }
     if (!string.isBlankOrEmpty(localAddr)) {
-        sql += " and a.现场地址 like @localAddr";
+        sql += " and mm.现场地址 like @localAddr";
         localAddr = '%' + localAddr + '%';
         params.push({"name": "localAddr", "value": localAddr, "type": "varchar"});
     }
     if (!string.isBlankOrEmpty(taskCode)) {
-        sql += " and t.任务编码 like @taskCode";
+        sql += " and mm.任务编码 like @taskCode";
         taskCode = '%' + taskCode + '%';
         params.push({"name": "taskCode", "value": taskCode, "type": "varchar"});
     }
-    sql += ' order by a.开始受理时刻 ';
     var sqlData = {
-        statement: sql,
+        statement: sql + sqlEnd,
         params: params
     };
     db.select(sqlData, function (err, results) {
@@ -441,7 +446,7 @@ exports.getPatientScheduleByID = function (req, res) {
     var patientCaseOrder = req.query.patientCaseOrder;
     console.log(taskCode + ';' + patientCaseOrder + ';' + carIdentification);
 
-    var sql = 'select * from AuSp120.tb_PatientSchedule where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
+    var sql = 'select *,convert(varchar(20),到达病人身边时间,120) from AuSp120.tb_PatientSchedule where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
         "name": "carIdentification",
         "value": carIdentification,
@@ -496,7 +501,7 @@ exports.getPatientScheduleByID = function (req, res) {
                     "motionPoints": results[i][35].value, //运动分数
                     "speechPoints": results[i][36].value,//言语分数
                     "CRAMS": results[i][37].value,
-                    "arrivePatientTime": results[i][38].value, //到达病人身边时间
+                    "arrivePatientTime": results[i][42].value, //到达病人身边时间
                     "T": results[i][39].value,//体温
                     "eeg": results[i][40].value, //心电图
                     "sbgm": results[i][41].value //简易血糖仪
@@ -527,7 +532,7 @@ exports.getPatientCases = function (req, res) {
         'pc.备注,pc.分站修改标志,pc.分站调度员编码,pc.中心修改标志,pc.表单完成,CONVERT(varchar(20),pc.记录时刻,120),pc.随车医生,pc.随车护士,        ' +
         'pc.司机,pc.分站编码,pc.车辆标识,pc.Flag,pc.转归编码,pc.科室,dp.NameM,di.NameM,ddc.NameM,ddr.NameM,   ' +
         'dill.NameM, ddcs.NameM, dco.NameM, ddp.NameM,dr.NameM,s.分站名称,CONVERT(varchar(20),a.开始受理时刻,120),pc.收费标志,pc.收费金额,' +
-        'pc.医生签名,pc.护士签名,pc.告知人签字, CONVERT(varchar(20),pc.签字时间,120),CONVERT(varchar(20),pc.告知时间,120),pc.病历填写人,pc.病历提供人,pc.其他处理,pc.其他用药,pc.责任人签字,t.任务序号,dna.NameM  ' +
+        'pc.医生签名,pc.护士签名,pc.告知人签字, CONVERT(varchar(20),pc.签字时间,120),CONVERT(varchar(20),pc.告知时间,120),pc.病历填写人,pc.病历提供人,pc.其他处理,pc.其他用药,pc.责任人签字,t.任务序号,dna.NameM,pc.病历编码  ' +
         'from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    ' +
         'left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    ' +
         'left outer join AuSp120.tb_EventV e on e.事件编码=a.事件编码    ' +
@@ -670,7 +675,8 @@ exports.getPatientCases = function (req, res) {
                     "otherMedications": results[i][68].value, //其他用药
                     "responsiblePersonSign": results[i][69].value, //责任人签字
                     "taskOrder": results[i][70].value, //任务序号
-                    "nationality": results[i][71].value //国籍
+                    "nationality": results[i][71].value, //国籍
+                    "patientCode": results[i][72].value //病历编码
                 });
             }
 
@@ -693,6 +699,7 @@ exports.addCharge = function (req, res) {
     /*添加收费记录*/
     var totalMoney = req.body.totalMoney;
     var chargePrice = req.body.chargePrice.trim();
+    chargePrice = parseFloat(chargePrice);
     totalMoney = parseFloat(totalMoney) + parseFloat(chargePrice);
     console.log("总金额:" + totalMoney);
     var sql = 'insert into AuSp120.tb_ChargeRecord (任务编码,病例序号,车辆标识,收费时间,收费项编码,收费金额,收款员编码) values (@taskCode,@patientCaseOrder,' +
@@ -702,9 +709,9 @@ exports.addCharge = function (req, res) {
     }, {"name": "carIdentification", "value": req.body.carIdentification.trim(), "type": "varchar"}, {
         "name": "chargeTime", "value": util.getCurrentTime(), "type": "varchar"
     }, {"name": "chargeCode", "value": req.body.chargeCode, "type": "int"}, {
-        "name": "chargePrice", "value": chargePrice, "type": "varchar"
+        "name": "chargePrice", "value": chargePrice, "type": "money"
     }, {"name": "userId", "value": req.session.userId, "type": "varchar"}, {
-        "name": "totalMoney", "value": totalMoney, "type": "varchar"
+        "name": "totalMoney", "value": totalMoney, "type": "money"
     }];
     var sqlData = {
         statement: sql,
@@ -747,7 +754,7 @@ exports.deleteCharge = function (req, res) {
     var params = [{"name": "taskCode", "value": req.body.taskCode, "type": "char"}, {
         "name": "patientCaseOrder", "value": req.body.patientCaseOrder, "type": "int"
     }, {"name": "carIdentification", "value": req.body.carIdentification.trim(), "type": "varchar"}, {
-        "name": "totalMoney", "value": totalMoney, "type": "varchar"
+        "name": "totalMoney", "value": totalMoney, "type": "money"
     }, {"name": "chargeRecordID", "value": req.body.chargeRecordID, "type": "int"}, {
         "name": "flag", "value": flag, "type": "int"
     }];
@@ -827,6 +834,7 @@ exports.addPatientCase = function (req, res, flag) {
         centerAlterFlag = '1';
     }
 
+
     var doctor = string.isEquals('--请选择--', req.body.doctor) ? '' : req.body.doctor;
     var nurse = string.isEquals('--请选择--', req.body.nurse) ? '' : req.body.nurse;
     var driver = string.isEquals('--请选择--', req.body.driver) ? '' : req.body.driver;
@@ -865,7 +873,19 @@ exports.addPatientCase = function (req, res, flag) {
         stationCode = stationCode.trim();
     }
 
-    console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID+';stationCode:'+stationCode);
+    var code = req.body.patientCode.trim(); //前台传过来用户填写的病历编码
+    var patientCode;
+    if (flag == 1) { //只有添加病历时才操作病历编码
+        patientCode = stationCode.substr(1) + '-' + util.getCurrentTime().split('-')[0] + util.getCurrentTime().split('-')[1] + '-' + code;
+    }
+    console.log('病历编码:' + patientCode);
+
+    //用药记录、处理记录
+    var handleString = req.body.handleString;
+    var medicationString = req.body.medicationString;
+    var truthTellingString = req.body.truthTelling;
+
+    console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID + ';stationCode:' + stationCode);
     var sql;
     var params;
     params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
@@ -954,8 +974,12 @@ exports.addPatientCase = function (req, res, flag) {
         "name": "charge", "value": charge, "type": "varchar"
     }, {"name": "chargeFlag", "value": chargeFlag, "type": "int"}, {
         "name": "username", "value": username, "type": "varchar"
-    }];
-
+    }, {"name": "patientCode", "value": patientCode, "type": "varchar"}, {
+        "name": "alterName", "value": username, "type": "varchar"
+    }, {"name": "alterTime", "value": util.getCurrentTime(), "type": "varchar"},
+        {"name": "truthTellingString", "value": truthTellingString, "type": "varchar"}, {
+            "name": "medicationString", "value": medicationString, "type": "varchar"
+        }, {"name": "handleString", "value": handleString, "type": "varchar"}];
 
 
     if (flag == 1) {
@@ -963,11 +987,12 @@ exports.addPatientCase = function (req, res, flag) {
         sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,身份编码,职业编码,民族编码,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
             '分类统计编码, 病情编码, 现病史, 既往病史, 过敏史, 途中变化记录, 救治结果编码, 送往地点, 现场地点, 死亡证明编码, 病家合作编码, 分站修改标志, 分站调度员编码,中心修改标志, ' +
             '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码,医生签名,备注,国籍编码,送往地点类型编码,现场地点类型编码,收费标志,收费金额,护士签名,' +
-            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人)  values(@taskCode,@patientCaseNumbers,' +
+            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人,病历编码,用药记录,处理记录,病情告知记录)  values(@taskCode,@patientCaseNumbers,' +
             '@patientName,@sex,@age,@identityCode,@workCode,@nationCode,@aidAddr,@linkMan,@linkPhone,@chiefComplaint,@doctorDiagnosis,@departmentCode,@patientReasonCode,' +
             '@classCode,@illnessCode,@presentIllness,@pastHistory,@allergy,@middleChange,@treatResultCode,@toAddr,@aidAddr,@deathCode,@patientCooperation,' +
             '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@recordTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@doctorSign,@remark,@nationality,' +
-            '@toAddrType,@localAddrType,@chargeFlag,@charge,@nurseSign,@tellerSign,@responsiblePersonSign,@signTime,@tellTime,@caseProvider,@otherHandle,@otherMedications,@username)';
+            '@toAddrType,@localAddrType,@chargeFlag,@charge,@nurseSign,@tellerSign,@responsiblePersonSign,@signTime,@tellTime,@caseProvider,@otherHandle,@otherMedications,' +
+            '@username,@patientCode,@medicationString,@handleString,@truthTellingString)';
         sqlData = {
             statement: sql,
             params: params
@@ -1084,9 +1109,9 @@ exports.addPatientCase = function (req, res, flag) {
         sql = 'update AuSp120.tb_PatientCase set 姓名=@patientName,性别=@sex,年龄=@age,身份编码=@identityCode,职业编码=@workCode,民族编码=@nationCode,家庭住址=@aidAddr,' +
             '联系人=@linkMan,联系电话=@linkPhone, 病人主诉=@chiefComplaint,医生诊断=@doctorDiagnosis,疾病科别编码=@departmentCode,分类统计编码=@classCode,病因编码=@patientReasonCode,现病史=@presentIllness,' +
             '既往病史=@pastHistory,病情编码=@illnessCode,过敏史=@allergy,救治结果编码=@treatResultCode,送往地点=@toAddr,现场地点=@aidAddr,死亡证明编码=@deathCode,' +
-            '病家合作编码=@patientCooperation,备注=@remark,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver, ' +
+            '病家合作编码=@patientCooperation,备注=@remark,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver,国籍编码=@nationality, ' +
             '转归编码=@outcomeCode,医生签名=@doctorSign,现场地点类型编码=@localAddrType,送往地点类型编码=@toAddrType,护士签名=@nurseSign,告知人签字=@tellerSign,责任人签字=@responsiblePersonSign,告知时间=@tellTime,病历提供人=@caseProvider,' +
-            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification';
+            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime,病历修改人=@alterName,病历修改时间=@alterTime,用药记录=@medicationString,处理记录=@handleString,病情告知记录=@truthTellingString where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification';
         sqlData = {
             statement: sql,
             params: params
@@ -1097,7 +1122,7 @@ exports.addPatientCase = function (req, res, flag) {
         sql = 'update AuSp120.tb_PatientSchedule set BPH=@BPH,BPL=@BPL,P=@P,R=@R,瞳孔左=@leftEye,瞳孔右=@rightEye,一般情况=@general,神志=@senseSchedule,' +
             '口唇紫绀=@kczg,对光反射=@eyeLight,心脏=@heart,肺部=@lung,头颈=@head,胸部=@breast,腹部=@abdomen,脊柱=@spine,四肢=@limb,其它=@others,' +
             '循环分值=@cyclePoints, 呼吸分值=@breathPoints,胸腹分值=@abdomenPoints,运动分值=@motionPoints,言语分值=@speechPoints,CRAMS=@CRAMS,T=@T,' +
-            '到达病人身边时间=@arriveSpotTime,心电图=@eeg,简易血糖仪=@sbgm where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
+            '到达病人身边时间=@arriveSpotTime,心电图=@eeg,简易血糖仪=@sbgm,病历修改人=@alterName,病历修改时间=@alterTime where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
         sqlData = {
             statement: sql,
             params: params
@@ -1349,7 +1374,7 @@ exports.addPerson = function (req, res) {
         case '10':
             userMark = '其他';
             break;
-            case '1':
+        case '1':
             userMark = '中心管理员';
             break;
         case '2':
@@ -1454,6 +1479,41 @@ exports.getPersonById = function (req, res) {
                     "licenceCode": results[i][14].value,
                     "trainCode": results[i][15].value,
                     "valid": results[i][16].value
+                });
+            }
+            res.json(result);
+        }
+    });
+};
+
+/*获取病历修改记录*/
+exports.getPatientCaseAlterRecord = function (req, res) {
+    var taskCode = req.query.taskCode.trim();
+    var carIdentification = req.query.carIdentification.trim();
+    var patientCaseOrder = req.query.pcOrder.trim();
+
+    var sql = 'select ID,修改项,原值,新值,修改人,convert(varchar(20),修改时间,120) from ausp120.tb_PatientCaseAlterRecord where 任务编码=@taskCode  and 病历序号=@patientCaseOrder and 车辆标识=@carIdentification';
+    var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
+        "name": "carIdentification",
+        "value": carIdentification,
+        "type": "varchar"
+    }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "varchar"}];
+    var sqlData = {
+        statement: sql,
+        params: params
+    };
+    db.select(sqlData, function (err, results) {
+        if (err) {
+            console.log(results);
+        } else {
+            var result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "alterName": results[i][1].value,
+                    "oldValue": results[i][2].value,
+                    "newValues": results[i][3].value,
+                    "alterUsername": results[i][4].value,
+                    "alterTime": results[i][5].value
                 });
             }
             res.json(result);

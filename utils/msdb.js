@@ -89,6 +89,9 @@ exports.change = function (trans, callback) {
                 case "int":
                     request.addParameter(data.name, TYPES.Int, data.value);
                     break;
+                case "money":
+                    request.addParameter(data.name, TYPES.Money, data.value);
+                    break;
                 default :
                     request.addParameter(data.name, TYPES.NVarChar, data.value);
             }
@@ -145,6 +148,9 @@ exports.changeSeries = function (trans, callback) {
                             break;
                         case "int":
                             request.addParameter(data.name, TYPES.Int, data.value);
+                            break;
+                        case "money":
+                            request.addParameter(data.name, TYPES.Money, data.value);
                             break;
                         default :
                             request.addParameter(data.name, TYPES.NVarChar, data.value);
