@@ -465,6 +465,28 @@ var TCheckClick = function (target) {
         $("#TT").removeAttr("readonly");
     }
 };
+/**
+ * 当患者要求转院时填写病历续页
+ * @param target
+ * @constructor
+ */
+var TransferStation = function (target) {
+    if (target.checked) {
+        if ($("#caseAdd").hasClass("none")) {
+            $("#caseAdd").removeClass("none");
+        }
+    } else {
+        if (!$("#caseAdd").hasClass("none")) { //隐藏病历续页
+            $("#caseAdd").addClass("none");
+        }
+        $('form').form('load', {
+            "outDoctor": '',
+            "receiveDoctor": '',
+            "transferTime": '',
+            "mainIllState": ''
+        });
+    }
+};
 
 /**
  * 加载病历主表信息
@@ -538,7 +560,11 @@ var loadPatientCase = function (taskCode, carIdentification, pcOrder) {
             "otherMedications": data.otherMedications,
             "doctor": data.doctor,
             "driver": data.driver,
-            "nurse": data.nurse
+            "nurse": data.nurse,
+            "outDoctor": data.outDoctor,
+            "receiveDoctor": data.receiveDoctor,
+            "transferTime": data.transferTime,
+            "mainIllState": data.mainIllState
         });
     });
 };

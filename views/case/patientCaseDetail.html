@@ -91,6 +91,7 @@
                 ss = stationCode.substr(1);
                 $("#stationSpan").html(ss);
                 $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1]);
+                $("#caseAdd").addClass("none");
             }
 
             if (page == 'edit') {//编辑病例信息
@@ -503,7 +504,8 @@
         </div>
         <div class="div_even">
             <label class="label_1">处理</label>
-            <button type="button" id="handleBtn">选择</button><input type="hidden" id="handleString" name="handleString">
+            <button type="button" id="handleBtn">选择</button>
+            <input type="hidden" id="handleString" name="handleString">
         </div>
         <div class="div_odd">
             <span id="handles">无</span>
@@ -514,7 +516,8 @@
         </div>
         <div class="div_odd">
             <label class="label_1">用药</label>
-            <button type="button" id="medicationBtn">选择</button><input type="hidden" id="medicationString" name="medicationString">
+            <button type="button" id="medicationBtn">选择</button>
+            <input type="hidden" id="medicationString" name="medicationString">
         </div>
         <div class="div_even">
             <span id="medications">无</span>
@@ -555,7 +558,7 @@
             <input type="checkbox" name="truthTelling" value="4"><span>4、患者要求不去医院进一步治疗，并同意救护车返回</span>
         </div>
         <div class="div_even">
-            <input type="checkbox" name="truthTelling" value="5"><span>5、患方要求转往</span>
+            <input type="checkbox" name="truthTelling" value="5" onclick="TransferStation(this);"><span>5、患方要求转往</span>
             <input style="width: 100px;" id="station" name="stationTransfer"/>
         </div>
         <div class="div_odd">
@@ -583,12 +586,32 @@
                        style="width:50%;"/>
             </div>
         </div>
-        <div class="div_even">
-            <label><b>病历续页</b></label>
+        <div id="caseAdd">
+            <div class="div_even">
+                <label><b>病历续页</b></label>
+            </div>
+            <div class="div_odd">
+                <div class="div_3_left">
+                    <label class="label_3">出诊医师</label>
+                    <input name="outDoctor" class="input_3"/>
+                </div>
+                <div class="div_3">
+                    <label class="label_3">接诊医师</label>
+                    <input name="receiveDoctor" class="input_3"/>
+                </div>
+                <div class="div_3_right">
+                    <label class="label_3">交接时间</label>
+                    <input class="easyui-datetimebox" id="transferTime" name="transferTime"
+                           data-options="showSeconds:true,editable:false"
+                           style="width:200px;"/>
+                </div>
+            </div>
+            <div class="div_even">
+                <label class="label_1"><b>主要病情</b></label>
+                <textarea name="mainIllState" rows="3" class="input_1"></textarea>
+            </div>
         </div>
-        <div class="div_odd">
-            <textarea name="remark" rows="4" style="width:100%"></textarea>
-        </div>
+
         <div class="div_even" style="text-align: center">
             <div class="div_3">
                 <label>病历填写人:</label>
@@ -604,7 +627,7 @@
                onclick="javascript:savePatientCase();">保存</a>
         </div>
     </form>
-    <div style="width: 90%;margin-top: 20px;border: 2px;margin: 0 auto" id="alterDiv" >
+    <div style="width: 90%;margin-top: 20px;border: 2px;margin: 0 auto" id="alterDiv">
         <p><b>病历修改记录</b></p>
         <table id="grid" data-options="border:false" style="width:100%;height:250px"></table>
     </div>

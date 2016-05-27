@@ -14,8 +14,19 @@
         var grid;
         var stationCode = '<%= stationCode %>';
         /*添加病历*/
-        var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder,stationCode) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder+ '&stationCode=' + stationCode;
+        var addFun = function (taskCode, carIdentification, caseNumbers, taskOrder, stationCode, pcOrder) {
+            var max;
+            if (!isBlankOrEmpty(pcOrder)) {
+                pcOrder = pcOrder.split(',');
+                max = pcOrder[0];
+                for (var i = 0; i < pcOrder.length; i++) {
+                    if (max < pcOrder[i]) {
+                        max = pcOrder[i];
+                    }
+                }
+            }
+            caseNumbers = caseNumbers >= max ? caseNumbers : max;
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&caseNumbers=" + caseNumbers + '&page=add&carIdentification=' + carIdentification + '&taskOrder=' + taskOrder + '&stationCode=' + stationCode;
             window.open(url);
         };
         /*查看病历*/
@@ -170,8 +181,8 @@
                                 } else {
                                     return cxw
                                             .formatString(
-                                            '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
-                                            row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder,row.stationCode);
+                                            '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
+                                            row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder, row.stationCode, row.pcOrder);
                                 }
 
                             }

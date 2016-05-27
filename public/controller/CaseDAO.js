@@ -501,7 +501,7 @@ exports.getPatientScheduleByID = function (req, res) {
                     "motionPoints": results[i][35].value, //运动分数
                     "speechPoints": results[i][36].value,//言语分数
                     "CRAMS": results[i][37].value,
-                    "arrivePatientTime": results[i][42].value, //到达病人身边时间
+                    "arrivePatientTime": results[i][44].value, //到达病人身边时间
                     "T": results[i][39].value,//体温
                     "eeg": results[i][40].value, //心电图
                     "sbgm": results[i][41].value //简易血糖仪
@@ -532,7 +532,8 @@ exports.getPatientCases = function (req, res) {
         'pc.备注,pc.分站修改标志,pc.分站调度员编码,pc.中心修改标志,pc.表单完成,CONVERT(varchar(20),pc.记录时刻,120),pc.随车医生,pc.随车护士,        ' +
         'pc.司机,pc.分站编码,pc.车辆标识,pc.Flag,pc.转归编码,pc.科室,dp.NameM,di.NameM,ddc.NameM,ddr.NameM,   ' +
         'dill.NameM, ddcs.NameM, dco.NameM, ddp.NameM,dr.NameM,s.分站名称,CONVERT(varchar(20),a.开始受理时刻,120),pc.收费标志,pc.收费金额,' +
-        'pc.医生签名,pc.护士签名,pc.告知人签字, CONVERT(varchar(20),pc.签字时间,120),CONVERT(varchar(20),pc.告知时间,120),pc.病历填写人,pc.病历提供人,pc.其他处理,pc.其他用药,pc.责任人签字,t.任务序号,dna.NameM,pc.病历编码  ' +
+        'pc.医生签名,pc.护士签名,pc.告知人签字, CONVERT(varchar(20),pc.签字时间,120),CONVERT(varchar(20),pc.告知时间,120),pc.病历填写人,pc.病历提供人,' +
+        'pc.其他处理,pc.其他用药,pc.责任人签字,t.任务序号,dna.NameM,pc.病历编码,pc.用药记录,pc.处理记录,pc.病情告知记录,pc.主要病情,pc.出诊医师,pc.接诊医师,convert(varchar(20),pc.交接时间,120)  ' +
         'from AuSp120.tb_TaskV t    left outer join AuSp120.tb_Ambulance am on am.车辆编码=t.车辆编码    ' +
         'left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    ' +
         'left outer join AuSp120.tb_EventV e on e.事件编码=a.事件编码    ' +
@@ -676,7 +677,14 @@ exports.getPatientCases = function (req, res) {
                     "responsiblePersonSign": results[i][69].value, //责任人签字
                     "taskOrder": results[i][70].value, //任务序号
                     "nationality": results[i][71].value, //国籍
-                    "patientCode": results[i][72].value //病历编码
+                    "patientCode": results[i][72].value, //病历编码
+                    "medicationRecord": results[i][73].value, //用药记录
+                    "handleRecord": results[i][74].value, //处理记录
+                    "tellRecord": results[i][75].value, //病情告知记录
+                    "mainIllState": results[i][76].value, //主要病情
+                    "outDoctor": results[i][77].value, //出诊医师
+                    "receiveDoctor": results[i][78].value, //接诊医师
+                    "transferTime": results[i][79].value //交接时间
                 });
             }
 
@@ -885,6 +893,24 @@ exports.addPatientCase = function (req, res, flag) {
     var medicationString = req.body.medicationString;
     var truthTellingString = req.body.truthTelling;
 
+    //病历续页内容
+    var outDoctor = req.body.outDoctor;
+    var receiveDoctor = req.body.receiveDoctor;
+    var transferTime = req.body.transferTime;
+    var mainIllState = req.body.mainIllState;
+    if (string.isBlankOrEmpty(outDoctor)) {
+        outDoctor = outDoctor.trim();
+    }
+    if (string.isBlankOrEmpty(receiveDoctor)) {
+        receiveDoctor = receiveDoctor.trim();
+    }
+    if (string.isBlankOrEmpty(transferTime)) {
+        transferTime = transferTime.trim();
+    }
+    if (string.isBlankOrEmpty(mainIllState)) {
+        mainIllState = req.body.trim();
+    }
+
     console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID + ';stationCode:' + stationCode);
     var sql;
     var params;
@@ -914,7 +940,7 @@ exports.addPatientCase = function (req, res, flag) {
         "name": "localAddr", "value": req.body.localAddr, "type": "varchar"
     }, {"name": "deathCode", "value": req.body.deathCode, "type": "tinyint"}, {
         "name": "patientCooperation", "value": req.body.patientCooperation, "type": "tinyint"
-    }, {"name": "remark", "value": req.body.remark, "type": "varchar"}, {
+    }, {"name": "mainIllState", "value": mainIllState, "type": "varchar"}, {
         "name": "doctor", "value": doctor, "type": "varchar"
     }, {"name": "nurse", "value": nurse, "type": "varchar"}, {
         "name": "driver", "value": driver, "type": "varchar"
@@ -979,20 +1005,23 @@ exports.addPatientCase = function (req, res, flag) {
     }, {"name": "alterTime", "value": util.getCurrentTime(), "type": "varchar"},
         {"name": "truthTellingString", "value": truthTellingString, "type": "varchar"}, {
             "name": "medicationString", "value": medicationString, "type": "varchar"
-        }, {"name": "handleString", "value": handleString, "type": "varchar"}];
+        }, {"name": "handleString", "value": handleString, "type": "varchar"},
+        {"name": "outDoctor", "value": outDoctor, "type": "varchar"}, {
+            "name": "receiveDoctor", "value": receiveDoctor, "type": "varchar"
+        }, {"name": "transferTime", "value": transferTime, "type": "varchar"}];
 
 
     if (flag == 1) {
         //插入病历主表
         sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,身份编码,职业编码,民族编码,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
             '分类统计编码, 病情编码, 现病史, 既往病史, 过敏史, 途中变化记录, 救治结果编码, 送往地点, 现场地点, 死亡证明编码, 病家合作编码, 分站修改标志, 分站调度员编码,中心修改标志, ' +
-            '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码,医生签名,备注,国籍编码,送往地点类型编码,现场地点类型编码,收费标志,收费金额,护士签名,' +
-            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人,病历编码,用药记录,处理记录,病情告知记录)  values(@taskCode,@patientCaseNumbers,' +
+            '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码,医生签名,主要病情,国籍编码,送往地点类型编码,现场地点类型编码,收费标志,收费金额,护士签名,' +
+            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人,病历编码,用药记录,处理记录,病情告知记录,出诊医师,接诊医师,交接时间)  values(@taskCode,@patientCaseNumbers,' +
             '@patientName,@sex,@age,@identityCode,@workCode,@nationCode,@aidAddr,@linkMan,@linkPhone,@chiefComplaint,@doctorDiagnosis,@departmentCode,@patientReasonCode,' +
             '@classCode,@illnessCode,@presentIllness,@pastHistory,@allergy,@middleChange,@treatResultCode,@toAddr,@aidAddr,@deathCode,@patientCooperation,' +
-            '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@recordTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@doctorSign,@remark,@nationality,' +
+            '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@recordTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@doctorSign,@mainIllState,@nationality,' +
             '@toAddrType,@localAddrType,@chargeFlag,@charge,@nurseSign,@tellerSign,@responsiblePersonSign,@signTime,@tellTime,@caseProvider,@otherHandle,@otherMedications,' +
-            '@username,@patientCode,@medicationString,@handleString,@truthTellingString)';
+            '@username,@patientCode,@medicationString,@handleString,@truthTellingString,@outDoctor,@receiveDoctor,@transferTime)';
         sqlData = {
             statement: sql,
             params: params
@@ -1109,9 +1138,10 @@ exports.addPatientCase = function (req, res, flag) {
         sql = 'update AuSp120.tb_PatientCase set 姓名=@patientName,性别=@sex,年龄=@age,身份编码=@identityCode,职业编码=@workCode,民族编码=@nationCode,家庭住址=@aidAddr,' +
             '联系人=@linkMan,联系电话=@linkPhone, 病人主诉=@chiefComplaint,医生诊断=@doctorDiagnosis,疾病科别编码=@departmentCode,分类统计编码=@classCode,病因编码=@patientReasonCode,现病史=@presentIllness,' +
             '既往病史=@pastHistory,病情编码=@illnessCode,过敏史=@allergy,救治结果编码=@treatResultCode,送往地点=@toAddr,现场地点=@aidAddr,死亡证明编码=@deathCode,' +
-            '病家合作编码=@patientCooperation,备注=@remark,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver,国籍编码=@nationality, ' +
+            '病家合作编码=@patientCooperation,主要病情=@mainIllState,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver,国籍编码=@nationality, ' +
             '转归编码=@outcomeCode,医生签名=@doctorSign,现场地点类型编码=@localAddrType,送往地点类型编码=@toAddrType,护士签名=@nurseSign,告知人签字=@tellerSign,责任人签字=@responsiblePersonSign,告知时间=@tellTime,病历提供人=@caseProvider,' +
-            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime,病历修改人=@alterName,病历修改时间=@alterTime,用药记录=@medicationString,处理记录=@handleString,病情告知记录=@truthTellingString where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification';
+            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime,病历修改人=@alterName,病历修改时间=@alterTime,用药记录=@medicationString,处理记录=@handleString,' +
+            '病情告知记录=@truthTellingString,出诊医师=@outDoctor,接诊医师=@receiveDoctor,交接时间=@transferTime where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification';
         sqlData = {
             statement: sql,
             params: params
