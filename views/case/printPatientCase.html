@@ -334,7 +334,7 @@
                             <span id="cDay"></span>
                             <span>日</span>
                         </div>
-                        <div style="display: inline-block;width:35%;text-align:right ">
+                        <div style="display: inline-block;width:35%;text-align:center ">
                             <span>病历编码:</span>
                             <span id="patientCode"></span>
                         </div>
@@ -501,9 +501,9 @@
                         <span>循环</span>
                     </td>
                     <td colspan="8" rowspan="3">
-           <span id="cyclePointsString">
+                       <span id="cyclePointsString">
 
-           </span>
+                       </span>
                     </td>
                     <td colspan="1" rowspan="3" style="text-align: center">
                         <span id="cyclePoints"></span>
@@ -641,26 +641,26 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="8">
-                        <div style="display: inline-block;margin-right: 20px;">
+                    <td colspan="12">
+                        <div style="display: inline-block;margin-right: 20px;border: none;width: 40%">
                             <span>医生签字:</span>
                             <span id="doctorSign"></span>
                         </div>
-                        <div style="display: inline-block;">
+                        <div style="display: inline-block;border: none;text-align: left">
                             <span>护士签名:</span>
                             <span id="nurseSign"></span>
                         </div>
                     </td>
-                    <td colspan="17" align="right">
-                        <span style="display: inline-block;width: 50px;"></span>
+                    <td colspan="13" align="right">
+                        <span style="display: inline-block;width: 40px;"></span>
                         <span>年</span>
-                        <span style="display: inline-block;width: 40px;"></span>
+                        <span style="display: inline-block;width: 25px;"></span>
                         <span>月</span>
-                        <span style="display: inline-block;width: 40px;"></span>
+                        <span style="display: inline-block;width: 25px;"></span>
                         <span>日</span>
-                        <span style="display: inline-block;width: 40px;"></span>
+                        <span style="display: inline-block;width: 25px;"></span>
                         <span>时</span>
-                        <span style="display: inline-block;width: 40px;"></span>
+                        <span style="display: inline-block;width: 25px;"></span>
                         <span>分</span>
                     </td>
                 </tr>
@@ -705,12 +705,10 @@
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <td colspan="25" style="border:none" align="right">
-                        <span>三门峡市120急救指挥中心监制</span>
-                    </td>
-                </tr>
             </table>
+            <div style="text-align: right;margin-right: 5%;">
+                <span>三门峡市120急救指挥中心监制</span>
+            </div>
             <!--endprint1-->
         </div>
         <div title="病历续页" data-options="closable:false" style="overflow:auto;padding:20px;">
@@ -721,7 +719,7 @@
                     <td colspan="8" style="border:none">
                         <div style="display: inline-block;width:30%;text-align: left">
                             <span>出诊医院:</span>
-                            <span id="station">
+                            <span id="station"></span>
                         </div>
                         <div style="display: inline-block;width:36%;text-align: center">
                             <span>医院(&nbsp;</span><span id="stationSpan1"></span>
