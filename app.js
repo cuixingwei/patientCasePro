@@ -6,6 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
+var log = require('./utils/log'); //日志
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var center = require('./routes/center');
@@ -20,6 +22,8 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.engine('.html', require('ejs').renderFile);  //改后缀.ejs为.html
 app.set('view engine', 'html');
+
+log.use(app);//使用日志文件
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

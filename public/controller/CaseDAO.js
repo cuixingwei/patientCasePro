@@ -6,6 +6,7 @@ var excel = require("../../utils/excel");
 var string = require("../../utils/string");
 var util = require("../../utils/util");
 var config = require('../../config/config.json');
+var logger  = require("../../utils/log").logger; //日志
 
 
 /*历史事件查询*/
@@ -98,6 +99,7 @@ exports.getHistoryEvent = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -199,6 +201,7 @@ exports.getPersons = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -257,6 +260,7 @@ exports.getChargeByID = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -300,6 +304,7 @@ exports.getTaskByID = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -343,6 +348,7 @@ exports.getCureMeasure = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -379,6 +385,7 @@ exports.getMedicationRecord = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -400,7 +407,6 @@ exports.getILLTeller = function (req, res) {
     var taskCode = req.body.taskCode;
     var carIdentification = '%' + req.body.carIdentification.trim() + '%';
     var patientCaseOrder = req.body.patientCaseOrder;
-    console.log('病情告知信息查询');
 
     var sql = 'select il.*,dil.NameM,dil.type,s.分站名称 from AuSp120.tb_ILLTeller il  left outer join ausp120.tb_DILLTeller dil on dil.Code=il.病情告知编码 ' +
         ' left outer join ausp120.tb_Station s on s.分站编码=il.患者要求转的医院  ' +
@@ -417,6 +423,7 @@ exports.getILLTeller = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -444,7 +451,6 @@ exports.getPatientScheduleByID = function (req, res) {
     var taskCode = req.query.taskCode;
     var carIdentification = req.query.carIdentification;
     var patientCaseOrder = req.query.patientCaseOrder;
-    console.log(taskCode + ';' + patientCaseOrder + ';' + carIdentification);
 
     var sql = 'select *,convert(varchar(20),到达病人身边时间,120) from AuSp120.tb_PatientSchedule where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
@@ -459,6 +465,7 @@ exports.getPatientScheduleByID = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -601,6 +608,7 @@ exports.getPatientCases = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -709,7 +717,6 @@ exports.addCharge = function (req, res) {
     var chargePrice = req.body.chargePrice.trim();
     chargePrice = parseFloat(chargePrice);
     totalMoney = parseFloat(totalMoney) + parseFloat(chargePrice);
-    console.log("总金额:" + totalMoney);
     var sql = 'insert into AuSp120.tb_ChargeRecord (任务编码,病例序号,车辆标识,收费时间,收费项编码,收费金额,收款员编码) values (@taskCode,@patientCaseOrder,' +
         '@carIdentification,@chargeTime,@chargeCode,@chargePrice,@userId)';
     var params = [{"name": "taskCode", "value": req.body.taskCode, "type": "char"}, {
@@ -735,6 +742,8 @@ exports.addCharge = function (req, res) {
     sqlBatch.push(sqlData);
     db.changeSeries(sqlBatch, function (err, results) {
         if (err) {
+            console.log(results);
+            logger.info(results);
             res.json({
                 flag: 2 //失败
             });
@@ -748,7 +757,6 @@ exports.addCharge = function (req, res) {
 
 /*删除收费项*/
 exports.deleteCharge = function (req, res) {
-    console.log('chargeRecordID:' + req.body.chargeRecordID);
     var totalMoney = parseFloat(req.body.totalMoney);
     var chargeNumbers = parseInt(req.body.chargeNumbers);
     var chargePrice = parseFloat(req.body.chargePrice);
@@ -782,6 +790,8 @@ exports.deleteCharge = function (req, res) {
 
     db.changeSeries(sqlBatch, function (err, results) {
         if (err) {
+            console.log(results);
+            logger.info(results);
             res.json({
                 success: false //失败
             });
@@ -832,7 +842,10 @@ exports.addPatientCase = function (req, res, flag) {
     console.log('CRAMS:' + CRAMS);
     var patientCaseNumbers = req.query.caseNumbers;
     if (!string.isBlankOrEmpty(patientCaseNumbers)) {
-        patientCaseNumbers = parseInt(req.query.caseNumbers) + 1;
+		if(isNaN(patientCaseNumbers)){
+			patientCaseNumbers = 0;
+		}
+        patientCaseNumbers = parseInt(patientCaseNumbers) + 1;
     }
 
     var stationAlterFlag = '1';//分站修改标志
@@ -898,20 +911,19 @@ exports.addPatientCase = function (req, res, flag) {
     var receiveDoctor = req.body.receiveDoctor;
     var transferTime = req.body.transferTime;
     var mainIllState = req.body.mainIllState;
-    if (string.isBlankOrEmpty(outDoctor)) {
+    if (!string.isBlankOrEmpty(outDoctor)) {
         outDoctor = outDoctor.trim();
     }
-    if (string.isBlankOrEmpty(receiveDoctor)) {
+    if (!string.isBlankOrEmpty(receiveDoctor)) {
         receiveDoctor = receiveDoctor.trim();
     }
-    if (string.isBlankOrEmpty(transferTime)) {
+    if (!string.isBlankOrEmpty(transferTime)) {
         transferTime = transferTime.trim();
     }
-    if (string.isBlankOrEmpty(mainIllState)) {
-        mainIllState = req.body.trim();
+    if (!string.isBlankOrEmpty(mainIllState)) {
+        mainIllState = mainIllState.trim();
     }
 
-    console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID + ';stationCode:' + stationCode);
     var sql;
     var params;
     params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
@@ -997,7 +1009,7 @@ exports.addPatientCase = function (req, res, flag) {
     }, {"name": "tellerSign", "value": tellerSign, "type": "varchar"}, {
         "name": "tellTime", "value": req.body.tellTime, "type": "varchar"
     }, {"name": "recordTime", "value": util.getCurrentTime(), "type": "varchar"}, {
-        "name": "charge", "value": charge, "type": "varchar"
+        "name": "charge", "value": charge, "type": "money"
     }, {"name": "chargeFlag", "value": chargeFlag, "type": "int"}, {
         "name": "username", "value": username, "type": "varchar"
     }, {"name": "patientCode", "value": patientCode, "type": "varchar"}, {
@@ -1124,6 +1136,8 @@ exports.addPatientCase = function (req, res, flag) {
         db.changeSeries(sqlBatch, function (err, result) {
             console.log('执行结果:' + result);
             if (err) {
+                console.log(results);
+                logger.info(results);
                 res.json({
                     flag: 2 //失败
                 });
@@ -1266,6 +1280,8 @@ exports.addPatientCase = function (req, res, flag) {
         db.changeSeries(sqlBatch, function (err, result) {
             console.log('执行结果:' + result);
             if (err) {
+                console.log(results);
+                logger.info(results);
                 res.json({
                     flag: 2 //失败
                 });
@@ -1338,6 +1354,8 @@ exports.deletePatientCase = function (req, res) {
     db.changeSeries(sqlBatch, function (err, results) {
         console.log(results);
         if (err) {
+            console.log(results);
+            logger.info(results);
             res.json({
                 success: true //成功
             });
@@ -1465,6 +1483,8 @@ exports.addPerson = function (req, res) {
     };
     db.change(sqlData, function (err, results) {
         if (err) {
+            console.log(results);
+            logger.info(results);
             res.json({
                 success: true //成功
             });
@@ -1488,6 +1508,7 @@ exports.getPersonById = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -1535,6 +1556,7 @@ exports.getPatientCaseAlterRecord = function (req, res) {
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
+            logger.info(results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {

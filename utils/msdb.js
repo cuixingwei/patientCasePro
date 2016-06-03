@@ -24,7 +24,6 @@ exports.select = function (trans, callback) {
             console.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
-        console.log("数据库连接成功!");
         var result = [];
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
@@ -35,7 +34,6 @@ exports.select = function (trans, callback) {
             }
             //release the connection back to the pool when finished
             connection.release();
-            console.log('rowCount: ' + rowCount);
             callback(null, result);
         });
 
@@ -63,7 +61,6 @@ exports.change = function (trans, callback) {
             console.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
-        console.log("数据库连接成功!");
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
@@ -71,7 +68,6 @@ exports.change = function (trans, callback) {
                 connection.release();
                 return callback(true, '操作失败!!' + err);
             }
-            console.log('改变行数 : ' + rowCount);
             //release the connection back to the pool when finished
             connection.release();
             callback(null, rowCount);
@@ -115,7 +111,6 @@ exports.changeSeries = function (trans, callback) {
             console.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
-        console.log("数据库连接成功!");
         //开启事务
         connection.beginTransaction(function (err) {
             if (err) {
@@ -123,7 +118,6 @@ exports.changeSeries = function (trans, callback) {
                 connection.release();
                 return callback(true, err);
             }
-            console.log('开启事务成功');
             var result = [];
             async.eachSeries(trans, function (item, cb) {
                 //use the connection as normal
@@ -133,7 +127,6 @@ exports.changeSeries = function (trans, callback) {
                         return cb(err);
                     }
                     result.push(rowCount);
-                    console.log('执行成功一条,结果rowCount=' + rowCount);
                     cb();
                 });
                 //添加参数
@@ -159,9 +152,7 @@ exports.changeSeries = function (trans, callback) {
 
                 connection.execSql(request);
             }, function (err) {
-                console.log('全部执行结束，还未提交!err=' + err);
                 if (err) {
-                    console.log('执行失败，事务开始回滚');
                     connection.rollbackTransaction(function (err) {
                         console.log('star rollback');
                         connection.release();
@@ -169,9 +160,7 @@ exports.changeSeries = function (trans, callback) {
                         callback(true, '回滚失败-' + err);
                     });
                 } else {
-                    console.log('执行完成，开始提交之前');
                     connection.commitTransaction(function (err) {
-                        console.log('执行完成，开始提交err' + err);
                         if (err) {
                             connection.rollbackTransaction(function (err) {
                                 callback(true, '回滚失败-' + err);

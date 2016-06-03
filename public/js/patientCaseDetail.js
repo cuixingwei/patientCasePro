@@ -59,7 +59,6 @@ var init = function () {
         valueField: 'id',
         textField: 'name',
         editable: false,
-        panelHeight: 'auto',
         method: 'get'
     });
     /*告知人签名--医生*/

@@ -47,6 +47,7 @@ router.get('/main', function (req, res, next) {
 
 /*退出*/
 router.get('/logOut', function (req, res, next) {
+    console.log(req.session.center + '的' + req.session.username + '退出登录');
     req.session.destroy(function (err) {
         if (err) {
             console.log(err.message);
