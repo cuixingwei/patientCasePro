@@ -43,7 +43,7 @@ router.get('/getDispatcher', function (req, res, next) {
 /*返回急救措施字典表*/
 router.get('/getDCureMeasure', function (req, res, next) {
     var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DMeasure  ",
+        statement: " select Code,NameM from AuSp120.tb_DMeasure where Flag<>0 ",
         params: []
     };
 
@@ -66,7 +66,7 @@ router.get('/getDCureMeasure', function (req, res, next) {
 /*返回用药字典表*/
 router.get('/getDMedication', function (req, res, next) {
     var sqlData = {
-        statement: " select Code,NameM from AuSp120.tb_DMedicine  ",
+        statement: " select Code,NameM from AuSp120.tb_DMedicine order by OrdNo  ",
         params: []
     };
 

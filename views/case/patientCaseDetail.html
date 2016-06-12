@@ -22,7 +22,7 @@
         .label_3 {
             width: 24%;
             text-align: left;
-            display: inline-block;;
+            display: inline-block;
         }
 
         .input_3 {
@@ -43,6 +43,23 @@
 
         .div_3 {
             width: 33%;
+            display: inline-block;
+        }
+
+        .div_4_left {
+            width: 24%;
+            display: inline-block;
+            float: left;
+        }
+
+        .div_4_right {
+            width: 24%;
+            display: inline-block;
+            float: right;
+        }
+
+        .div_4 {
+            width: 24%;
             display: inline-block;
         }
 
@@ -81,7 +98,8 @@
         var cureMeasureRecord = [];//编辑，查看时
         var DMedications = [];
         var medicationsRecord = [];//编辑，查看时
-        var currentTime = getCurrentTime();
+        var currentTime = getCurrentTime().split(' ')[0];
+		var flag = 0; //添加标志,防止重复添加的情况
         var grid;
         $(document).ready(function () {
             init();
@@ -90,7 +108,7 @@
             if (page == 'add') { //添加病历时
                 ss = stationCode.substr(1);
                 $("#stationSpan").html(ss);
-                $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1]);
+                $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split('-')[2]);
                 $("#caseAdd").addClass("none");
             }
 
@@ -179,13 +197,13 @@
         <div class="div_odd">
             <div class="div_3_left">
                 <label class="label_3" style="color: red;">姓名</label>
-                <input name="patientName" class="input_3"/>
+                <input name="patientName" id="patientName" class="input_3"/>
             </div>
             <div class="div_3">
                 <label class="label_3">性别</label>
                 <select class="easyui-combobox" name="sex" id="sex" style="width: 50%;"
                         data-options="editable:false,panelHeight:'auto'">
-                    <option value="不祥">不祥</option>
+                    <option value="不详">不详</option>
                     <option value="男">男</option>
                     <option value="女">女</option>
                 </select>
@@ -198,12 +216,12 @@
         <div class="div_even">
             <div style="display: inline-block;width: 66%;">
                 <label style="width: 12%;display: inline-block;">救治地点</label>
-                <input name="aidAddr" style="width: 75%;">
+                <input name="aidAddr" id="aidAddr" style="width: 75%;">
             </div>
             <div style="display: inline-block;float:right;width: 33%;">
-                <label class="label_3">到达病人身边时间</label>
-                <input class="easyui-datetimebox" id="arriveSpotTime" name="arriveSpotTime"
-                       data-options="showSeconds:true" style="width: 50%;"/>
+                <label style="width: 30%;text-align: left;display: inline-block;">到达病人身边时间</label>
+                <input class="easyui-datetimebox" id="arrivePatientTime" name="arrivePatientTime"
+                       data-options="showSeconds:true,editable:false" style="width: 45%;"/>
             </div>
         </div>
         <div class="div_odd">
@@ -230,12 +248,13 @@
                 <input name="workCode" id="workCode" style="width: 50%;"/>
             </div>
             <div class="div_3">
-                <label class="label_3">身份</label>
-                <input name="identityCode" id="identityCode" style="width: 50%;"/>
-            </div>
-            <div class="div_3_right">
                 <label class="label_3">死亡证明</label>
                 <input name="deathCode" id="deathCode" style="width: 50%;"/>
+            </div>
+            <div class="div_3_right">
+                <label class="label_3">出车时间</label>
+                <input name="outCarTime" id="outCarTime" class="easyui-datetimebox"
+                       data-options="showSeconds:true,editable:false" style="width: 50%;"/>
             </div>
         </div>
         <div class="div_odd">
@@ -254,16 +273,19 @@
         </div>
         <div class="div_even">
             <div class="div_3_left">
-                <label class="label_3">随车医生</label>
-                <input name="doctor" id="doctor" style="width: 50%;"/>
+                <label class="label_3">到达现场时间</label>
+                <input name="arriveSpotTime" class="easyui-datetimebox"
+                       data-options="showSeconds:true,editable:false" style="width: 50%;"/>
             </div>
             <div class="div_3">
-                <label class="label_3">随车护士</label>
-                <input name="nurse" id="nurse" style="width: 50%;"/>
+                <label class="label_3">离开现场时间</label>
+                <input name="leaveSpotTime" id="leaveSpotTime" class="easyui-datetimebox"
+                       data-options="showSeconds:true,editable:false" style="width: 50%;"/>
             </div>
             <div class="div_3_right">
-                <label class="label_3">司机</label>
-                <input name="driver" id="driver" style="width: 50%;"/>
+                <label class="label_3">返(转)院时间</label>
+                <input name="returnHospitalTime" id="returnHospitalTime" class="easyui-datetimebox"
+                       data-options="showSeconds:true,editable:false" style="width: 50%;"/>
             </div>
         </div>
         <div class="div_odd">
@@ -410,9 +432,20 @@
             <input name="others" class="input_1">
         </div>
         <div class="div_odd">
-            <label class="label_1">辅助检查</label>
-            <input type="checkbox" name="eeg" value="1">心电图
-            <input type="checkbox" name="sbgm" value="1" style="margin-left: 50px;">简易血糖仪
+            <div style="display: inline-block;width: 24%;">
+                <label style="display: inline-block;width: 35%;">辅助检查</label>
+                <input type="checkbox" name="eeg" value="1">心电图
+                <input type="checkbox" name="sbgm" value="1" style="margin-left: 50px;">简易血糖仪
+            </div>
+           <div style="display: inline-block;width: 20%;">
+               <label style="display: inline-block;width: 20%;">检查时间</label>
+               <input name="checkTime" id="checkTime" class="easyui-datetimebox"
+                      data-options="showSeconds:true,editable:false" style="width: 55%;"/>
+           </div>
+            <div style="display: inline-block;width: 53%;float: right">
+                <label style="display: inline-block;width: 10%;">检查结果</label>
+                <input name="checkResult" style="width: 86%;">
+            </div>
         </div>
         <div class="div_even">
             <div style="width:45%;display: inline-block">
@@ -527,18 +560,22 @@
             <textarea name="otherMedications" class="input_1" rows="2"></textarea>
         </div>
         <div class="div_even" style="text-align: center">
-            <div class="div_3_left">
+            <div class="div_4_left">
                 <label>医生签名:</label>
-                <input name="doctorSign" id="doctorSign" style="width: 50%;"/>
+                <input name="doctor" id="doctor" style="width: 50%;"/>
             </div>
-            <div class="div_3">
+            <div class="div_4">
                 <label>护士签名:</label>
-                <input name="nurseSign" id="nurseSign" style="width: 50%;"/>
+                <input name="nurse" id="nurse" style="width: 50%;"/>
             </div>
-            <div class="div_3_right">
+            <div class="div_4">
+                <label>司机签名:</label>
+                <input name="driver" id="driver" style="width: 50%;"/>
+            </div>
+            <div class="div_4_right">
                 <label>签字时间:</label>
                 <input class="easyui-datetimebox" id="signTime" name="signTime"
-                       data-options="showSeconds:true"
+                       data-options="showSeconds:true,editable:false"
                        style="width:50%;"/>
             </div>
         </div>
@@ -582,7 +619,7 @@
             <div class="div_3_right">
                 <label>告知时间:</label>
                 <input class="easyui-datetimebox" id="tellTime" name="tellTime"
-                       data-options="showSeconds:true"
+                       data-options="showSeconds:true,editable:false"
                        style="width:50%;"/>
             </div>
         </div>

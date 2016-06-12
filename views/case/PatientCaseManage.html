@@ -19,8 +19,8 @@
         var carIdentification, taskCode, pcOrder, taskOrder;
         var stationCode = '<%= stationCode %>';
         /*查看病历*/
-        var viewFun = function (taskCode, pcOrder, carIdentification) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder;
+        var viewFun = function (taskCode, pcOrder, carIdentification, taskOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder+ '&taskOrder=' + taskOrder;
             window.open(url);
         };
         /*打印病历*/
@@ -332,7 +332,7 @@
                             width: "4%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                return cxw.formatString('<img  onclick="viewFun(\'{0}\',\'{1}\',\'{2}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/>', row.taskCode, row.pcOrder, row.carIdentification);
+                                return cxw.formatString('<img  onclick="viewFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/>', row.taskCode, row.pcOrder, row.carIdentification, row.taskOrder);
                             }
                         }, {
                             field: 'print',

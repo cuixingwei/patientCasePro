@@ -30,13 +30,13 @@
             window.open(url);
         };
         /*查看病历*/
-        var viewFun = function (taskCode, carIdentification, pcOrder) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder;
+        var viewFun = function (taskCode, carIdentification, pcOrder, taskOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder + '&taskOrder=' + taskOrder;
             window.open(url);
         };
         /*编辑病历*/
-        var editFun = function (taskCode, carIdentification, pcOrder) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + "&page=edit&pcOrder=" + pcOrder;
+        var editFun = function (taskCode, carIdentification, pcOrder, taskOrder) {
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + "&page=edit&pcOrder=" + pcOrder + '&taskOrder=' + taskOrder;
             window.open(url);
         };
         /*删除病历*/
@@ -60,7 +60,7 @@
         function init() {
             $('#startTime').datetimebox({
                 required: true,
-                value: firstOfMouth()
+                value: GetDateStr(-3)
             });
             $('#endTime').datetimebox({
                 value: getCurrentTime()
@@ -206,7 +206,9 @@
                             }
                             if (!isBlankOrEmpty(rowData.age)) {
                                 age = rowData.age.split(',');
-                            }
+                            }else{
+							    age = ['']
+							}
                             if (!isBlankOrEmpty(rowData.sex)) {
                                 sex = rowData.sex.split(',');
                             }
@@ -219,11 +221,13 @@
                             taskCode = rowData.taskCode;
                             carIdentification = rowData.carIdentification;
                             for (var i = 0; i < length; i++) {
-                                sql += cxw.formatString('<tr><td>{0}</td><td>{1}</td><td>{2}</td><td><img  onclick="viewFun(\'{3}\',\'{4}\',\'{5}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/></td>' +
-                                        '<td><img  onclick="editFun(\'{6}\',\'{7}\',\'{8}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_edit.png"/></td>' +
-                                        '<td><img  onclick="deleteFun(\'{9}\',\'{10}\',\'{11}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_delete.png"/></td></tr>',
-                                        patientName[i], sex[i], age[i], taskCode, carIdentification, pcOrder[i], taskCode, carIdentification, pcOrder[i], taskCode, carIdentification, pcOrder[i]);
-                            }
+							console.log(patientName[i]+','+ sex[i]+','+ age[i]+','+pcOrder[i]);
+                                sql += cxw.formatString('<tr><td>{0}</td><td>{1}</td><td>{2}</td><td><img  onclick="viewFun(\'{3}\',\'{4}\',\'{5}\',\'{6}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/></td>' +
+                                        '<td><img  onclick="editFun(\'{7}\',\'{8}\',\'{9}\',\'{10}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_edit.png"/></td>' +
+                                        '<td><img  onclick="deleteFun(\'{11}\',\'{12}\',\'{13}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_delete.png"/></td></tr>',
+                                        patientName[i], sex[i], age[i], taskCode, carIdentification, pcOrder[i], rowData.taskOrder, taskCode, carIdentification, pcOrder[i], rowData.taskOrder, taskCode, carIdentification, pcOrder[i]);
+                            
+							}
                             sql += '</table>';
                             return sql;
 
@@ -238,7 +242,7 @@
                 document.getElementById("dispatcherDiv").style.visibility = "hidden";
                 document.getElementById("stationDiv").style.visibility = "hidden";
             }
-            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+			grid.datagrid('load', cxw.serializeObject($('#searchForm')));
             setInterval(function () {
                 var refresh = $.cookie("refresh");
                 if (refresh == '1') {

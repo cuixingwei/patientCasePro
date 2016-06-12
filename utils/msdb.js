@@ -2,6 +2,7 @@
  * Created by Dell on 2016/3/25.
  */
 var connectionConfig = require('../config/sql.json'); //加载连接配置
+var logger  = require("./log").logger; //日志
 
 var ConnectionPool = require('tedious-connection-pool');
 var Request = require('tedious').Request;
@@ -21,14 +22,14 @@ exports.select = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            logger.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         var result = [];
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
-                console.error(err);
+                logger.error(err);
                 connection.release();
                 return callback(true, '执行操作失败!!' + err);
             }
@@ -49,7 +50,7 @@ exports.select = function (trans, callback) {
         connection.execSql(request);
     });
     pool.on('error', function (err) {
-        console.error(err);
+        logger.error(err);
     });
 };
 
@@ -58,13 +59,13 @@ exports.change = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            logger.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
-                console.error(err);
+				logger.error('数据库修改时出错'+err);
                 connection.release();
                 return callback(true, '操作失败!!' + err);
             }
@@ -96,7 +97,7 @@ exports.change = function (trans, callback) {
         connection.execSql(request);
     });
     pool.on('error', function (err) {
-        console.error(err);
+		logger.error('数据库修改时出错'+err);
     });
 };
 /**
@@ -108,13 +109,13 @@ exports.changeSeries = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            logger.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         //开启事务
         connection.beginTransaction(function (err) {
             if (err) {
-                console.log('sql beginTransaction err:' + err);
+				logger.error('数据库批量修改时开启事务出错'+err);
                 connection.release();
                 return callback(true, err);
             }
@@ -123,7 +124,7 @@ exports.changeSeries = function (trans, callback) {
                 //use the connection as normal
                 var request = new Request(item.statement, function (err, rowCount) {
                     if (err) {
-                        console.error(err);
+                        logger.error('数据库批量修改时出错'+err);
                         return cb(err);
                     }
                     result.push(rowCount);
@@ -153,14 +154,15 @@ exports.changeSeries = function (trans, callback) {
                 connection.execSql(request);
             }, function (err) {
                 if (err) {
+					logger.error('数据库批量修改时出错'+err);
                     connection.rollbackTransaction(function (err) {
-                        console.log('star rollback');
                         connection.release();
-                        console.log('回滚失败');
+                        logger.error('回滚失败');
                         callback(true, '回滚失败-' + err);
                     });
                 } else {
                     connection.commitTransaction(function (err) {
+                        logger.error('执行完成，开始提交err' + err);
                         if (err) {
                             connection.rollbackTransaction(function (err) {
                                 callback(true, '回滚失败-' + err);
@@ -175,7 +177,7 @@ exports.changeSeries = function (trans, callback) {
 
     });
     pool.on('error', function (err) {
-        console.error(err);
+		logger.error('数据库批量修改时出错'+err);
     });
 };
 

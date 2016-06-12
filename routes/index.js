@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var logger  = require("../utils/log").logger; //日志
 
 var menu = require("../config/menu.json");
 
@@ -47,7 +48,7 @@ router.get('/main', function (req, res, next) {
 
 /*退出*/
 router.get('/logOut', function (req, res, next) {
-    console.log(req.session.center + '的' + req.session.username + '退出登录');
+	logger.info(req.session.center+'的'+req.session.username+'退出登录');
     req.session.destroy(function (err) {
         if (err) {
             console.log(err.message);

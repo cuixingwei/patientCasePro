@@ -1,5 +1,6 @@
 var express = require('express');
 var db = require('../utils/msdb');
+var logger  = require("../utils/log").logger; //日志
 
 var router = express.Router();
 
@@ -30,18 +31,18 @@ router.post('/login', function (req, res, next) {
             } else {
                 var temp = results[0];
                 if (temp[2].value == password) {
-                    if (temp[5].value == 6 || temp[5].value == 8 || temp[5].value == 9 || temp[5].value == 10) {
+                    if (temp[5].value == 6 ||  temp[5].value == 9 || temp[5].value == 10) {
                         res.json({
                             success: false,
                             msg: "noPermission"
                         });
                     } else {
+						logger.info(temp[3].value+'的'+temp[1].value+'登录成功');
                         req.session.username = temp[1].value;  //登录成功后存session
+                        req.session.userId = temp[0].value; //存入用户ID
                         req.session.center = temp[3].value; //中心名称
                         req.session.stationCode = temp[4].value; //单位编码
-                        req.session.userId = temp[0].value; //存入用户ID
                         req.session.personType = temp[5].value; //人员类型
-                        console.log(req.session.center+'的'+req.session.username+'登录成功');
                         res.json({
                             success: true,
                             msg: "success"
