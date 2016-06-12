@@ -363,10 +363,10 @@ var loadTask = function () {
                 $("#aidAddr").val(data.localAddr);
                 $("#linkPhone").val(data.linkPhone);
                 $("#arrivePatientTime").datetimebox('setValue', data.arriveSpotTime);
-				if(data.outCarTime != ''){
-					currentTime = data.outCarTime.split(' ')[0];
-				}
-				$("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split('-')[2]);
+                if (data.outCarTime != '') {
+                    currentTime = data.outCarTime.split(' ')[0];
+                }
+                $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split('-')[2]);
             }
             $("form").form('load', {
                 "arriveSpotTime": data.arriveSpotTime,
@@ -394,35 +394,35 @@ var savePatientCase = function (type) {
         $.messager.alert('提示', '病历编码不能为空', 'info');
     } else if ($("#patientName").val() == '' || $('#age').combobox('getText') == '') {
         $.messager.alert('提示', '病人姓名年龄不能为空', 'info');
-    } else {		
+    } else {
         if (page == "add") {//添加病历
-			if(flag == 1){
-				$.messager.alert('提示', '你已经添加过该病例,请不要重复添加!', 'info');
-			} else {
-				var url;
-				url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &caseNumbers= ' + caseNumbers + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + '&stationCode=' + stationCode;
-				$.post(url, cxw.serializeObject($('form')), function (data) {
-					if (data.flag == 1) {
-						$.cookie("refresh", "1");
-						caseNumbers = parseInt(caseNumbers) + 1; //添加成功后病历数增加1
-						flag = 1
-						$.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
-							if (r) {
-								window.close();
-							}
-						});
-					} else if (data.flag == 2) {
-						$.messager.alert('提示', '保存病历失败!', 'info');
-					} else {
-						$.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-							window.location.href = "/";
-						});
-					}
-				});
-			}
-            
+            if (flag == 1) {
+                $.messager.alert('提示', '你已经添加过该病例,请不要重复添加!', 'info');
+            } else {
+                var url;
+                url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &caseNumbers= ' + caseNumbers + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + '&stationCode=' + stationCode;
+                $.post(url, cxw.serializeObject($('form')), function (data) {
+                    if (data.flag == 1) {
+                        $.cookie("refresh", "1");
+                        caseNumbers = parseInt(caseNumbers) + 1; //添加成功后病历数增加1
+                        flag = 1
+                        $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
+                            if (r) {
+                                window.close();
+                            }
+                        });
+                    } else if (data.flag == 2) {
+                        $.messager.alert('提示', '保存病历失败!', 'info');
+                    } else {
+                        $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                            window.location.href = "/";
+                        });
+                    }
+                });
+            }
+
         } else if (page == "edit") {//编辑病历
-            var url = '/cases/editPatientCase?taskCode=' + taskCode + ' &patientCaseOrder= ' + pcOrder + ' &carIdentification= ' + carIdentification+ ' &taskOrder= ' + taskOrder;
+            var url = '/cases/editPatientCase?taskCode=' + taskCode + ' &patientCaseOrder= ' + pcOrder + ' &carIdentification= ' + carIdentification + ' &taskOrder= ' + taskOrder;
             $.post(url, cxw.serializeObject($('form')), function (data) {
                 if (data.flag == 1) {
                     grid.datagrid('load');
@@ -554,6 +554,7 @@ var loadPatientCase = function (taskCode, carIdentification, pcOrder) {
             "outDoctor": data.outDoctor,
             "receiveDoctor": data.receiveDoctor,
             "transferTime": data.transferTime,
+            "responsiblePersonSign": data.responsiblePersonSign,
             "mainIllState": data.mainIllState
         });
     });
@@ -575,6 +576,11 @@ var loadPatientSchedule = function (taskCode, carIdentification, pcOrder) {
             $("#abdomenPointsSpan").html(data.abdomenPoints != 0 ? data.abdomenPoints - 1 : 0);
             $("#motionPointsSpan").html(data.motionPoints != 0 ? data.motionPoints - 1 : 0);
             $("#speechPointsSpan").html(data.speechPoints != 0 ? data.speechPoints - 1 : 0);
+            if (data.T == '未查') {
+                $("#noCheck").attr("checked", true);
+            } else {
+                $("#T").val(data.T);
+            }
         }
         $("form").form('load', {
             "BPH": data.BPH,
@@ -605,9 +611,8 @@ var loadPatientSchedule = function (taskCode, carIdentification, pcOrder) {
             "arrivePatientTime": data.arrivePatientTime,
             "eeg": data.eeg,
             "sbgm": data.sbgm,
-            "T": data.T,
-			"checkTime" : data.checkTime,
-			"checkResult" : data.checkResult
+            "checkTime": data.checkTime,
+            "checkResult": data.checkResult
         });
     });
 };

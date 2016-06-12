@@ -34,7 +34,7 @@ exports.getHistoryEvent = function (req, res) {
         "left outer join ausp120.tb_TaskV t on t.任务编码=pc.任务编码 and t.车辆编码=am.车辆编码    " +
         "left outer join AuSp120.tb_AcceptDescriptV a on a.事件编码=t.事件编码 and a.受理序号=t.受理序号    " +
         "where a.开始受理时刻 between @startTime and @endTime  group by pc.任务编码,pc.车辆标识,am.车辆编码 " +
-         "select ISNULL(pc.病历个数,0),mm.受理时刻,mm.呼救电话,m.姓名,mm.现场地址,pc.车辆标识,     " +
+        "select ISNULL(pc.病历个数,0),mm.受理时刻,mm.呼救电话,m.姓名,mm.现场地址,pc.车辆标识,     " +
         "mm.outResult,mm.任务编码,mm.任务序号,mm.分站编码,pc.姓年性序号医生护士司机    " +
         "from #mm mm	left outer join #pc pc on pc.任务编码=mm.任务编码 and pc.车辆编码=mm.车辆编码    " +
         "left outer join ausp120.tb_MrUser m on m.工号=mm.调度员编码   where 1=1    ";
@@ -101,24 +101,24 @@ exports.getHistoryEvent = function (req, res) {
             var startIndex = (page - 1) * rows;
             var endIndex = page * rows <= results.length ? page * rows : results.length;
             for (var i = 0; i < results.length; i++) {
-                var age,patientName,sex,pcOrder,driver,nurse,doctor,all;
+                var age, patientName, sex, pcOrder, driver, nurse, doctor, all;
                 all = results[i][10].value;
-                if(!string.isBlankOrEmpty(all)){
-                    patientName=all.split(";")[0];
-                    age=all.split(";")[1];
-                    sex=all.split(";")[2];
-                    pcOrder=all.split(";")[3];
-                    doctor=all.split(";")[4];
-                    nurse=all.split(";")[5];
-                    driver=all.split(";")[6];
-                }else{
-					patientName='';
-                    age='';
-                    sex='';
-                    pcOrder='';
-                    doctor='';
-                    nurse='';
-                    driver='';
+                if (!string.isBlankOrEmpty(all)) {
+                    patientName = all.split(";")[0];
+                    age = all.split(";")[1];
+                    sex = all.split(";")[2];
+                    pcOrder = all.split(";")[3];
+                    doctor = all.split(";")[4];
+                    nurse = all.split(";")[5];
+                    driver = all.split(";")[6];
+                } else {
+                    patientName = '';
+                    age = '';
+                    sex = '';
+                    pcOrder = '';
+                    doctor = '';
+                    nurse = '';
+                    driver = '';
                 }
                 result.push({
                     "caseNumbers": results[i][0].value,
@@ -886,6 +886,12 @@ exports.addPatientCase = function (req, res, flag) {
         sbgm = 1;
     }
 
+    var T = req.body.T;
+    var noCheck = req.body.noCheck;
+    if (string.isEquals(noCheck, '1')) { //如果体温未查
+        T = '未查';
+    }
+
     var taskCode = req.query.taskCode.trim();
     var carIdentification = req.query.carIdentification;
     if (!string.isBlankOrEmpty(carIdentification)) {
@@ -909,7 +915,7 @@ exports.addPatientCase = function (req, res, flag) {
     var patientCode;
     if (flag == 1) { //只有添加病历时才操作病历编码
         var currentTime = util.getCurrentTime();
-        if(!string.isBlankOrEmpty(req.body.outCarTime)){
+        if (!string.isBlankOrEmpty(req.body.outCarTime)) {
             currentTime = req.body.outCarTime;
         }
         patientCode = stationCode.substr(1) + '-' + currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split(' ')[0].split('-')[2] + '-' + code;
@@ -1001,7 +1007,7 @@ exports.addPatientCase = function (req, res, flag) {
         }, {"name": "abdomenPoints", "value": abdomenPoints, "type": "int"}, {
             "name": "motionPoints", "value": motionPoints, "type": "int"
         }, {"name": "CRAMS", "value": CRAMS, "type": "int"}, {
-            "name": "T", "value": req.body.T, "type": "varchar"
+            "name": "T", "value": T, "type": "varchar"
         }, {"name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "varchar"}, {
             "name": "stationAlterFlag", "value": stationAlterFlag, "type": "varchar"
         }, {"name": "centerAlterFlag", "value": centerAlterFlag, "type": "varchar"}, {
