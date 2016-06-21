@@ -18,6 +18,8 @@
         var carIdentification = '<%= carIdentification %>';
         var patientCaseOrder = '<%= patientCaseOrder %>';
         var taskOrder = '<%= taskOrder %>';
+
+
         /*打印病历*/
         var printData = function (oper) {
             if (oper < 10) {
@@ -288,6 +290,7 @@
                     $("#otherHandle").html(data.otherHandle);
                     $("#diagnose").html(data.doctorDiagnosis);
                     $("#illJudge").html(data.illness);
+                    $("#otherMedications").html(data.otherMedications);
                     var transferTime = data.transferTime;
                     if (transferTime) {
                         $("#transferYear1").html(transferTime.split(' ')[0].split('-')[0]);
@@ -298,6 +301,18 @@
                     }
                 }
             }); //结束加载病历信息
+
+            /*加载用药*/
+            var url = '/cases/getMedicationRecord?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&patientCaseOrder=' + patientCaseOrder;
+            $.post(url, function (data) {
+                var str = "";
+                if (data) {
+                    for (var i = 0; i < data.length; i++) {
+                        str += (i+1) + "、" + data[i].method + data[i].medication + "&nbsp;&nbsp;"
+                    }
+                }
+                $("#medications").html(str);
+            });//加载用药记录结束
         });
     </script>
 </head>
@@ -637,6 +652,14 @@
                         <div>
                             <span>其他处理:</span>
                             <span id="otherHandles"></span>
+                        </div>
+                        <div>
+                            <span>用药:</span>
+                            <span id="medications"></span>
+                        </div>
+                        <div>
+                            <span>其他用药:</span>
+                            <span id="otherMedications"></span>
                         </div>
                     </td>
                 </tr>

@@ -28,7 +28,7 @@ var addMedication = function () {
 /*保存用药项*/
 var saveMedication = function () {
     if (page == 'add') {
-        pcOrder = caseNumbers + 1;
+        pcOrder =  parseInt(caseNumbers) + 1;
     }
     if (addMedicationFlag == 1) {
         $.post('/cases/addMedication', {
@@ -61,7 +61,7 @@ var saveMedication = function () {
 /*删除用药记录项*/
 var deleteMedication = function () {
     if (page == 'add') {
-        pcOrder = caseNumbers + 1;
+        pcOrder =  parseInt(caseNumbers) + 1;
     }
     if (medicationRecordID == -1) {
         $.messager.alert('提示', '请选择你要删除的记录!', 'info');
@@ -76,7 +76,7 @@ var deleteMedication = function () {
             }, function (data) {
                 if (data.flag == 1) {
                     /*加载用药记录项*/
-                    pcOrder = caseNumbers + 1;
+                    pcOrder =  parseInt(caseNumbers) + 1;
                     medicationListGrid.datagrid('load');
                 } else {
                     $.messager.alert('提示', '删除用药记录项失败!', 'info');
