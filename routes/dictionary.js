@@ -86,6 +86,52 @@ router.get('/getDMedication', function (req, res, next) {
     });
 });
 
+/*返回用药方式字典表*/
+router.get('/getDMedicationMethod', function (req, res, next) {
+    var sqlData = {
+        statement: " select Code,NameM from AuSp120.tb_DMedicationMethod   ",
+        params: []
+    };
+
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            res.json(result);
+        }
+    });
+});
+
+/*返回药品名称输入历史表*/
+router.get('/getMedicineHistory', function (req, res, next) {
+    var sqlData = {
+        statement: " select ID,NameM from AuSp120.tb_MedicineHistory order by 频数 desc  ",
+        params: []
+    };
+
+    db.select(sqlData, function (error, results) {
+        if (error) {
+            console.log(error.message);
+        } else {
+            result = [];
+            for (var i = 0; i < results.length; i++) {
+                result.push({
+                    "id": results[i][0].value,
+                    "name": results[i][1].value
+                });
+            }
+            res.json(result);
+        }
+    });
+});
+
 /*返回年龄字典表*/
 router.get('/getDAge', function (req, res, next) {
     var sqlData = {

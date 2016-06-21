@@ -91,6 +91,9 @@
         var taskCode = '<%= taskCode %>';
         var taskOrder = '<%= taskOrder %>';
         var caseNumbers = '<%= caseNumbers %>';
+        if(caseNumbers == 'undefined'){
+            caseNumbers = 0;
+        }
         var pcOrder = '<%= pcOrder %>';
         var carCode;
         var carIdentification = '<%= carIdentification %>';
@@ -99,8 +102,11 @@
         var DMedications = [];
         var medicationsRecord = [];//编辑，查看时
         var currentTime = getCurrentTime().split(' ')[0];
-		var flag = 0; //添加标志,防止重复添加的情况
+        var flag = 0; //添加标志,防止重复添加病历的情况
         var grid;
+        var medicationListGrid;
+        var addMedicationFlag = 0; //添加用药记录标志
+        var medicationRecordID = -1;
         $(document).ready(function () {
             init();
             $("#alterDiv").addClass("none");//默认隐藏修改记录
@@ -110,13 +116,21 @@
                 $("#stationSpan").html(ss);
                 $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split('-')[2]);
                 $("#caseAdd").addClass("none");
+                /*添加病历时禁止页面刷新*/
+                $(document).bind("keydown", function (e) {
+                    e = window.event || e;
+                    if (e.keyCode == 116) {
+                        e.keyCode = 0;
+                        return false;
+                    }
+                });
+
             }
 
             if (page == 'edit') {//编辑病例信息
                 loadPatientCase(taskCode, carIdentification, pcOrder);
                 loadPatientSchedule(taskCode, carIdentification, pcOrder);
                 loadCureMeasure(taskCode, carIdentification, pcOrder);
-                loadMedicationRecord(taskCode, carIdentification, pcOrder);
                 loadILLTeller(taskCode, carIdentification, pcOrder);
                 $("#patientCode").attr("readonly", "readonly");
                 $("#alterDiv").removeClass("none");//编辑病历时显示修改记录
@@ -164,10 +178,15 @@
                 loadPatientCase(taskCode, carIdentification, pcOrder);
                 loadPatientSchedule(taskCode, carIdentification, pcOrder);
                 loadCureMeasure(taskCode, carIdentification, pcOrder);
-                loadMedicationRecord(taskCode, carIdentification, pcOrder);
                 loadILLTeller(taskCode, carIdentification, pcOrder);
                 $("#save_Btn").hide();
                 $("#patientCode").attr("readonly", "readonly");
+                $("#methodSave").linkbutton({
+                    disabled: true
+                });
+                $("#methodDelete").linkbutton({
+                    disabled: true
+                });
             }
 
             if ($("#medications").html() == '无') { //如果无标红
@@ -437,11 +456,11 @@
                 <input type="checkbox" name="eeg" value="1">心电图
                 <input type="checkbox" name="sbgm" value="1" style="margin-left: 50px;">简易血糖仪
             </div>
-           <div style="display: inline-block;width: 20%;">
-               <label style="display: inline-block;width: 20%;">检查时间</label>
-               <input name="checkTime" id="checkTime" class="easyui-datetimebox"
-                      data-options="showSeconds:true,editable:false" style="width: 55%;"/>
-           </div>
+            <div style="display: inline-block;width: 20%;">
+                <label style="display: inline-block;width: 20%;">检查时间</label>
+                <input name="checkTime" id="checkTime" class="easyui-datetimebox"
+                       data-options="showSeconds:true,editable:false" style="width: 55%;"/>
+            </div>
             <div style="display: inline-block;width: 53%;float: right">
                 <label style="display: inline-block;width: 10%;">检查结果</label>
                 <input name="checkResult" style="width: 86%;">
@@ -680,8 +699,34 @@
 <div id="medication_window" title="选择用药" style="width:700px;height:470px;display: none;"
      data-options="modal:true">
     <form>
-        <div id="medicationRecordDiv" style="padding: 10px;">
-
+        <div id="medicationRecordDiv" style="padding: 5px;">
+            <div class="easyui-panel" collapsible="false"
+                 style="width:100%;height:310px;text-align: center">
+                <table id="medicationList" data-options="fit:true,border:false"></table>
+            </div>
+            <div style="width:100%;height:50px;text-align: center">
+                <div style="height: 25px;display: block;margin-top:5px;">
+                    <span>用药方式</span>
+                    <input id="medicationMethod" name="medicationMethod" style="width: 100px;"/>
+                    <span>药品名称</span>
+                    <input id="medicationName" name="medicationName" style="width: 350px;"/>
+                </div>
+                <div style="height: 25px;display: block;margin-top:5px;">
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
+                               onclick="javascript:addMedication();">添加</a>
+                        </span>
+                        <span style="width: 100px;display: inline-block">
+                            <a href="#" id="methodSave" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
+                               onclick="javascript:saveMedication();">保存</a>
+                        </span>
+                         <span style="width: 100px;display: inline-block">
+                            <a href="#" id="methodDelete" class="easyui-linkbutton"
+                               data-options="iconCls:'ext-icon-delete'"
+                               onclick="javascript:deleteMedication();">删除</a>
+                        </span>
+                </div>
+            </div>
         </div>
     </form>
 </div>

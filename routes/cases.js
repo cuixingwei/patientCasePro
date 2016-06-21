@@ -114,5 +114,20 @@ router.post('/getPatientCaseAlterRecord', function (req, res, next) {
     CaseDAO.getPatientCaseAlterRecord(req, res);
 });
 
+/*添加用药记录项*/
+router.post('/addMedication', function (req, res, next) {
+    if (string.isBlankOrEmpty(req.session.userId)) {
+        res.json({
+            flag: 0 //无session
+        });
+    } else {
+        CaseDAO.addMedication(req, res);
+    }
+});
+/*删除用药记录项*/
+router.post('/deleteMedication', function (req, res, next) {
+    CaseDAO.deleteMedication(req, res);
+});
+
 
 module.exports = router;

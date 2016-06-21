@@ -379,11 +379,16 @@ exports.getCureMeasure = function (req, res) {
 
 /*获取用药记录信息*/
 exports.getMedicationRecord = function (req, res) {
-    var taskCode = req.body.taskCode;
-    var carIdentification = '%' + req.body.carIdentification.trim() + '%';
-    var patientCaseOrder = req.body.patientCaseOrder;
+    var taskCode = req.query.taskCode;
+    var carIdentification = '%' + req.query.carIdentification.trim() + '%';
+    var patientCaseOrder = req.query.patientCaseOrder;
+    if (string.isBlankOrEmpty(patientCaseOrder)) {
+        patientCaseOrder = req.body.pcOrder;
+    }
 
-    var sql = 'select * from AuSp120.tb_MedicationRecord  where 车辆标识 like @carIdentification and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
+    var sql = 'select mr.ID,mr.任务编码,mr.病例序号,mr.用药方式,mr.药物名称,mr.车辆标识,dmm.NameM from AuSp120.tb_MedicationRecord mr     ' +
+        'left outer join ausp120.tb_DMedicationMethod dmm on dmm.Code=mr.用药方式  ' +
+        'where 车辆标识 like @carIdentification and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
         "name": "carIdentification",
         "value": carIdentification,
@@ -403,8 +408,10 @@ exports.getMedicationRecord = function (req, res) {
                     "ID": results[i][0].value,
                     "taskCode": results[i][1].value,
                     "patientCaseOrder": results[i][2].value,
-                    "medicationCode": results[i][3].value, //药物编码
-                    "carIdentification": results[i][4].carIdentification
+                    "methodCode": results[i][3].value,
+                    "medication": results[i][4].value, //药物名称
+                    "carIdentification": results[i][5].carIdentification,
+                    "method": results[i][6].value
                 });
             }
             res.json(result);
@@ -927,9 +934,8 @@ exports.addPatientCase = function (req, res, flag) {
         tellTime = tellTime.trim();
     }
 
-    //用药记录、处理记录
+    //告知、处理记录
     var handleString = req.body.handleString;
-    var medicationString = req.body.medicationString;
     var truthTellingString = req.body.truthTelling;
 
     //病历续页内容
@@ -1039,9 +1045,8 @@ exports.addPatientCase = function (req, res, flag) {
         }, {"name": "patientCode", "value": patientCode, "type": "varchar"}, {
             "name": "alterName", "value": username, "type": "varchar"
         }, {"name": "alterTime", "value": util.getCurrentTime(), "type": "varchar"},
-        {"name": "truthTellingString", "value": truthTellingString, "type": "varchar"}, {
-            "name": "medicationString", "value": medicationString, "type": "varchar"
-        }, {"name": "handleString", "value": handleString, "type": "varchar"},
+        {"name": "truthTellingString", "value": truthTellingString, "type": "varchar"},
+        {"name": "handleString", "value": handleString, "type": "varchar"},
         {"name": "outDoctor", "value": outDoctor, "type": "varchar"}, {
             "name": "receiveDoctor", "value": receiveDoctor, "type": "varchar"
         }, {"name": "transferTime", "value": transferTime, "type": "varchar"}, {
@@ -1057,12 +1062,12 @@ exports.addPatientCase = function (req, res, flag) {
         sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,职业编码,民族编码,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
             '分类统计编码, 病情编码, 现病史, 既往病史, 过敏史, 途中变化记录, 救治结果编码, 送往地点, 现场地点, 死亡证明编码, 病家合作编码, 分站修改标志, 分站调度员编码,中心修改标志, ' +
             '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码,主要病情,国籍编码,送往地点类型编码,现场地点类型编码,收费标志,收费金额,' +
-            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人,病历编码,用药记录,处理记录,病情告知记录,出诊医师,接诊医师,交接时间)  values(@taskCode,@patientCaseNumbers,' +
+            '告知人签字,责任人签字,签字时间,告知时间,病历提供人,其他处理,其他用药,病历填写人,病历编码,处理记录,病情告知记录,出诊医师,接诊医师,交接时间)  values(@taskCode,@patientCaseNumbers,' +
             '@patientName,@sex,@age,@workCode,@nationCode,@aidAddr,@linkMan,@linkPhone,@chiefComplaint,@doctorDiagnosis,@departmentCode,@patientReasonCode,' +
             '@classCode,@illnessCode,@presentIllness,@pastHistory,@allergy,@middleChange,@treatResultCode,@toAddr,@aidAddr,@deathCode,@patientCooperation,' +
             '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@recordTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@mainIllState,@nationality,' +
             '@toAddrType,@localAddrType,@chargeFlag,@charge,@tellerSign,@responsiblePersonSign,@signTime,@tellTime,@caseProvider,@otherHandle,@otherMedications,' +
-            '@username,@patientCode,@medicationString,@handleString,@truthTellingString,@outDoctor,@receiveDoctor,@transferTime)';
+            '@username,@patientCode,@handleString,@truthTellingString,@outDoctor,@receiveDoctor,@transferTime)';
         sqlData = {
             statement: sql,
             params: params
@@ -1096,28 +1101,6 @@ exports.addPatientCase = function (req, res, flag) {
                     "name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "tinyint"
                 }, {"name": "carIdentification", "value": req.query.carIdentification.trim(), "type": "varchar"}, {
                     "name": "cureCode", "value": cureMeasure.split(',')[i].trim(), "type": "tinyint"
-                }];
-                sqlData = {
-                    statement: sql,
-                    params: params
-                };
-                sqlBatch.push(sqlData);
-            }
-        }
-
-        //插入用药
-        var medicationRecord = req.body.medicationRecord;
-        if (!string.isBlankOrEmpty(medicationRecord)) {
-            length = medicationRecord.split(',').length;
-            for (i = 0; i < length; i++) {
-                sql = 'insert into AuSp120.tb_MedicationRecord (任务编码,病例序号,药物编码,车辆标识)  ' +
-                    'values(@taskCode,@patientCaseNumbers,@medicationRecordCode,@carIdentification)';
-                params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
-                    "name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "tinyint"
-                }, {"name": "carIdentification", "value": req.query.carIdentification.trim(), "type": "varchar"}, {
-                    "name": "medicationRecordCode",
-                    "value": medicationRecord.split(',')[i].trim(),
-                    "type": "tinyint"
                 }];
                 sqlData = {
                     statement: sql,
@@ -1186,7 +1169,7 @@ exports.addPatientCase = function (req, res, flag) {
             '既往病史=@pastHistory,病情编码=@illnessCode,过敏史=@allergy,救治结果编码=@treatResultCode,送往地点=@toAddr,现场地点=@aidAddr,死亡证明编码=@deathCode,' +
             '病家合作编码=@patientCooperation,主要病情=@mainIllState,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver,国籍编码=@nationality, ' +
             '转归编码=@outcomeCode,现场地点类型编码=@localAddrType,送往地点类型编码=@toAddrType,告知人签字=@tellerSign,责任人签字=@responsiblePersonSign,告知时间=@tellTime,病历提供人=@caseProvider,' +
-            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime,病历修改人=@alterName,病历修改时间=@alterTime,用药记录=@medicationString,处理记录=@handleString,' +
+            '其他处理=@otherHandle,其他用药=@otherMedications,签字时间=@signTime,病历修改人=@alterName,病历修改时间=@alterTime,处理记录=@handleString,' +
             '病情告知记录=@truthTellingString,出诊医师=@outDoctor,接诊医师=@receiveDoctor,交接时间=@transferTime where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification';
         sqlData = {
             statement: sql,
@@ -1237,36 +1220,8 @@ exports.addPatientCase = function (req, res, flag) {
             }
         }
 
-        //删除用药记录
-        sql = 'delete from AuSp120.tb_MedicationRecord where 车辆标识=@carIdentification and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
-        sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //插入用药
-        var medicationRecord = req.body.medicationRecord;
-        if (!string.isBlankOrEmpty(medicationRecord)) {
-            length = medicationRecord.split(',').length;
-            for (i = 0; i < length; i++) {
-                sql = 'insert into AuSp120.tb_MedicationRecord (任务编码,病例序号,药物编码,车辆标识)  ' +
-                    'values(@taskCode,@patientCaseOrder,@medicationRecordCode,@carIdentification)';
-                params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
-                    "name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"
-                }, {"name": "carIdentification", "value": carIdentification, "type": "varchar"}, {
-                    "name": "medicationRecordCode",
-                    "value": medicationRecord.split(',')[i].trim(),
-                    "type": "tinyint"
-                }];
-                sqlData = {
-                    statement: sql,
-                    params: params
-                };
-                sqlBatch.push(sqlData);
-            }
-        }
 
-        //删除用药记录
+        //删除病情告知记录
         sql = 'delete from AuSp120.tb_ILLTeller where 车辆标识=@carIdentification and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
         sqlData = {
             statement: sql,
@@ -1596,6 +1551,95 @@ exports.getPatientCaseAlterRecord = function (req, res) {
                 });
             }
             res.json(result);
+        }
+    });
+};
+
+/*添加用药信息*/
+exports.addMedication = function (req, res) {
+    var taskCode = req.body.taskCode.trim();
+    var carIdentification = req.body.carIdentification.trim();
+    var patientCaseOrder = req.body.patientCaseOrder.trim();
+    var medicationMethod = req.body.medicationMethod;
+    var medicationName = req.body.medicationName;
+    var medicationString = req.body.medicationString;
+
+    var sqlBatch = [];
+
+    var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
+        "name": "carIdentification", "value": carIdentification, "type": "varchar"
+    }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"}, {
+        "name": "medicationMethod", "value": medicationMethod, "type": "tinyint"
+    }, {"name": "medicationName", "value": medicationName, "type": "varchar"},
+        {"name": "medicationString", "value": medicationString, "type": "varchar"}];
+
+    var sql = 'insert into ausp120.tb_MedicationRecord (任务编码,病例序号,用药方式,药物名称,车辆标识) values ' +
+        '(@taskCode,@patientCaseOrder,@medicationMethod,@medicationName,@carIdentification)';
+    var sqlData = {
+        statement: sql,
+        params: params
+    };
+    sqlBatch.push(sqlData);
+    sql = "update ausp120.tb_PatientCase set 用药记录=@medicationString where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification ";
+    sqlData = {
+        statement: sql,
+        params: params
+    };
+    sqlBatch.push(sqlData);
+
+    db.changeSeries(sqlBatch, function (err, results) {
+        if (err) {
+            logger.error(results);
+            res.json({
+                flag: 2 //失败
+            });
+        } else {
+            res.json({
+                flag: 1 //成功
+            });
+        }
+    });
+};
+
+/*添加用药信息*/
+exports.deleteMedication = function (req, res) {
+    var taskCode = req.body.taskCode.trim();
+    var carIdentification = req.body.carIdentification.trim();
+    var patientCaseOrder = req.body.patientCaseOrder.trim();
+    var medicationString = req.body.medicationString;
+    var medicationRecordID = req.body.medicationRecordID;
+
+    var sqlBatch = [];
+
+    var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
+        "name": "carIdentification", "value": carIdentification, "type": "varchar"
+    }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"},
+        {"name": "medicationString", "value": medicationString, "type": "varchar"},
+        {"name": "medicationRecordID", "value": medicationRecordID, "type": "varchar"}];
+
+    var sql = 'delete from ausp120.tb_MedicationRecord where ID=@medicationRecordID ';
+    var sqlData = {
+        statement: sql,
+        params: params
+    };
+    sqlBatch.push(sqlData);
+    sql = "update ausp120.tb_PatientCase set 用药记录=@medicationString where 任务编码=@taskCode and 序号=@patientCaseOrder and 车辆标识=@carIdentification ";
+    sqlData = {
+        statement: sql,
+        params: params
+    };
+    sqlBatch.push(sqlData);
+
+    db.changeSeries(sqlBatch, function (err, results) {
+        if (err) {
+            logger.error(results);
+            res.json({
+                flag: 2 //失败
+            });
+        } else {
+            res.json({
+                flag: 1 //成功
+            });
         }
     });
 };

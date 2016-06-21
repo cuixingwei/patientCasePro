@@ -1,8 +1,186 @@
 /**
  * Created by Dell on 2016/5/1.
  */
+
+/*添加用药项*/
+var addMedication = function () {
+    if (page == 'add') {
+        if (flag != 1) {
+            $.messager.alert('提示', '请先添加病历,然后在添加用药信息!', 'info');
+        } else {
+            var data = $('#medicationMethod').combobox('getData');
+            if (data.length > 0) {
+                $('#medicationMethod').combobox('setValue', data[0].id);
+            }
+            $('#medicationName').combobox('setText', '');
+            addMedicationFlag = 1;
+        }
+    } else {
+        var data = $('#medicationMethod').combobox('getData');
+        if (data.length > 0) {
+            $('#medicationMethod').combobox('setValue', data[0].id);
+        }
+        $('#medicationName').combobox('setText', '');
+        addMedicationFlag = 1;
+    }
+
+};
+/*保存用药项*/
+var saveMedication = function () {
+    if (page == 'add') {
+        pcOrder = caseNumbers + 1;
+    }
+    if (addMedicationFlag == 1) {
+        $.post('/cases/addMedication', {
+            "taskCode": taskCode,
+            "carIdentification": carIdentification,
+            "patientCaseOrder": pcOrder,
+            "medicationMethod": $("#medicationMethod").combobox('getValue'),
+            "medicationName": $("#medicationName").combobox('getText'),
+            "medicationString": $("#medicationString").val()
+        }, function (data) {
+            if (data.flag == 1) {
+                /*加载用药记录列表*/
+                medicationListGrid.datagrid('load', {
+                    "pcOrder": pcOrder
+                });
+                addMedicationFlag = 0;
+            } else if (data.flag == 2) {
+                addMedicationFlag = 0;
+                $.messager.alert('提示', '添加用药记录失败!', 'info');
+            } else {
+                $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                    window.location.href = "/";
+                });
+            }
+        });
+    }else{
+        $.messager.alert('提示', '请先点击添加!', 'info');
+    }
+};
+/*删除用药记录项*/
+var deleteMedication = function () {
+    if (page == 'add') {
+        pcOrder = caseNumbers + 1;
+    }
+    if (medicationRecordID == -1) {
+        $.messager.alert('提示', '请选择你要删除的记录!', 'info');
+    } else {
+        $.messager.alert('警告', '你确定要删除该条记录嘛!', 'info', function (r) {
+            $.post('/cases/deleteMedication', {
+                "medicationRecordID": medicationRecordID,
+                "taskCode": taskCode,
+                "carIdentification": carIdentification,
+                "patientCaseOrder": pcOrder,
+                "medicationString": $("#medicationString").val()
+            }, function (data) {
+                if (data.flag == 1) {
+                    /*加载用药记录项*/
+                    pcOrder = caseNumbers + 1;
+                    medicationListGrid.datagrid('load');
+                } else {
+                    $.messager.alert('提示', '删除用药记录项失败!', 'info');
+                    medicationRecordID = -1;
+                }
+            });
+        });
+    }
+};
 var init = function () {
+    /*用药记录对话框初始化*/
+    $('#medication_window').show().dialog({
+        modal: true,
+        closable: true,
+        buttons: [{
+            text: '关闭',
+            left: true,
+            handler: function () {
+                $('#medication_window').dialog('close');
+            }
+        }],
+        onOpen: function () {
+            /*用药列表*/
+            medicationListGrid = $('#medicationList').datagrid(
+                {
+                    url: '/cases/getMedicationRecord?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&patientCaseOrder=' + pcOrder,
+                    pagePosition: 'bottom',
+                    pagination: true,
+                    striped: true,
+                    singleSelect: true,
+                    rownumbers: true,
+                    idField: 'acceptTime',
+                    pageSize: 20,
+                    pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                    columns: [[{
+                        field: 'method',
+                        title: '用药方式',
+                        width: "35%",
+                        align: 'center'
+                    }, {
+                        field: 'medication',
+                        title: '药物名称',
+                        width: "64%",
+                        align: 'center'
+                    }]],
+                    onLoadSuccess: function (data) {
+                        var str = "";
+                        if (data.rows.length > 0) {
+                            $("#medicationMethod").combobox('setValue', data.rows[0].method);
+                            $("#medicationName").combobox('setText', data.rows[0].medication);
+                            medicationRecordID = data.rows[0].ID;
+                            medicationListGrid.datagrid('selectRow', 0);//光标指向第一个
+                            for (var i = 0; i < data.rows.length; i++) {
+                                str += "," + data.rows[i].medication;
+                            }
+                            $("#medications").html(str.substr(1)).removeClass("red");
+                            $("#medicationString").val(str.substr(1));
+                        } else {
+                            medicationRecordID = -1;
+                            $("#medicationName").val('');
+                            $("#medicationMethod").combobox('setValue', 1);
+                            $("#medications").html('无').addClass("red");
+                        }
+
+                    },
+                    onClickRow: function (rowIndex, rowData) {
+                        $("#medicationMethod").combobox('setValue', rowData.method);
+                        $("#medicationName").combobox('setText',rowData.medication);
+                        addMedicationFlag = 0;
+                        medicationRecordID = rowData.ID;
+                    }
+                });
+        }
+    }).dialog('close');
+
+    /*点击用药*/
+    $("#medicationBtn").click(function () {
+        $('#medication_window').dialog('open');
+    });
+
     $("#currentTime").html(getCurrentTime()); //填写时间
+    /*用药方式*/
+    $('#medicationMethod').combobox({
+        url: '/dictionary/getDMedicationMethod',
+        valueField: 'id',
+        textField: 'name',
+        panelHeight: 'auto',
+        method: 'get',
+        editable: false,
+        onLoadSuccess: function (data) {
+            if (data) {
+                $('#medicationMethod').combobox('setValue', data[0].id);
+            }
+        }
+    });
+
+    /*用药历史*/
+    $('#medicationName').combobox({
+        url: '/dictionary/getMedicineHistory',
+        valueField: 'id',
+        textField: 'name',
+        panelHeight: 'auto',
+        method: 'get'
+    });
     /*民族*/
     $('#nationCode').combobox({
         url: '/dictionary/getDFolk',
@@ -200,18 +378,6 @@ var init = function () {
         $("#cureMeasureDiv").empty().append(str);
 
     });
-    /*获取用药字典表*/
-    $.get('/dictionary/getDMedication', function (data, status) {
-        var str = '';
-        DMedications = data;
-        $.each(data, function (i, ob) {
-            str += '<span style="display: inline-block;width: 33%;"><input name="medicationRecord" type="checkbox" value="' + ob.id + '"/>&nbsp;&nbsp;&nbsp;' + ob.name + '</span>';
-            if ((i + 1) % 3 == 0 && i > 0) {
-                str += '<br/>';
-            }
-        });
-        $("#medicationRecordDiv").empty().append(str);
-    });
     /*处理选择点击事件绑定*/
     $("#handleBtn").click(function () {
         $('#handle_window').dialog('open');
@@ -253,46 +419,6 @@ var init = function () {
         }
     }).dialog('close');
 
-    /*处理选择用药绑定*/
-    $("#medicationBtn").click(function () {
-        $('#medication_window').dialog('open');
-    });
-    /*处理选择用药对话框初始化*/
-    $('#medication_window').show().dialog({
-        modal: true,
-        closable: true,
-        buttons: [{
-            text: '确定',
-            handler: function () {
-                var medications = [];
-                var medicationName = '';
-                $("input[name='medicationRecord']:checked").each(function () {
-                    medications.push($(this).val());
-                });
-                console.log('medications:' + medications + 'medications的长度:' + medications.length);
-                $.each(DMedications, function (i, ob) {
-                    if (medications.indexOf(ob.id) >= 0) {
-                        medicationName += ',' + ob.name;
-                    }
-
-                });
-                if (medicationName != '') {
-                    medicationName = medicationName.substr(1);
-                }
-                $("#medications").val('').html('<b>' + medicationName + '</b>');
-                $("#medicationString").val(medicationName); //赋值
-                if ($("#medications").html() == '无') { //如果无标红
-                    $("#medications").addClass("red");
-                } else {
-                    $("#medications").removeClass("red");
-                }
-                $('#medication_window').dialog('close');
-            }
-        }],
-        onOpen: function () {
-
-        }
-    }).dialog('close');
 
     initPoints();//初始化的得分值
 };
@@ -404,8 +530,7 @@ var savePatientCase = function (type) {
                 $.post(url, cxw.serializeObject($('form')), function (data) {
                     if (data.flag == 1) {
                         $.cookie("refresh", "1");
-                        caseNumbers = parseInt(caseNumbers) + 1; //添加成功后病历数增加1
-                        flag = 1
+                        flag = 1;
                         $.messager.confirm('提示', '保存病历成功!点击确定退出该页面', function (r) {
                             if (r) {
                                 window.close();
@@ -676,62 +801,6 @@ var loadCureMeasure = function (taskCode, carIdentification, pcOrder) {
     });
 };
 
-/**
- * 加载用药记录
- * @param taskCode
- * @param carIdentification
- * @param pcOrder
- */
-var loadMedicationRecord = function (taskCode, carIdentification, pcOrder) {
-    $.post('/cases/getMedicationRecord', {
-        taskCode: taskCode,
-        carIdentification: carIdentification,
-        patientCaseOrder: pcOrder
-    }, function (result) {
-        medicationsRecord = result;
-        /*初始化选中的急救措施*/
-        if (medicationsRecord.length > 0) {
-            /*全不选，初始化*/
-            $("[name = medicationRecord]:checkbox").attr("checked", false);
-            var boxes = document.getElementsByName("medicationRecord");
-            for (var j = 0; j < boxes.length; j++) {
-                for (var i = 0; i < medicationsRecord.length; i++) {
-                    if (boxes[j].value == medicationsRecord[i].medicationCode) {
-                        boxes[j].checked = true;
-                        break;
-                    }
-                }
-            }
-        } else {
-            /*全不选，初始化*/
-            $("[name = medicationRecord]:checkbox").attr("checked", false);
-        }//end
-        if (result.length > 0) { //初始化medications Span
-            var medications = [];
-            var medicationsName = '';
-            $.each(medicationsRecord, function (i, ob) {
-                medications.push(ob.medicationCode);
-            });
-            $.each(DMedications, function (i, ob) {
-                for (var n = 0; n < medications.length; n++) {
-                    if (medications[n] == ob.id) {
-                        medicationsName += ',' + ob.name;
-                    }
-                }
-            });
-            if (medicationsName != '') {
-                medicationsName = medicationsName.substr(1);
-            }
-            $("#medications").val('').html('<b>' + medicationsName + '</b>');
-            $("#medicationString").val(medicationsName); //赋值用药记录
-            if ($("#medications").html() == '无') { //如果无标红
-                $("#medications").addClass("red");
-            } else {
-                $("#medications").removeClass("red");
-            }
-        }
-    });
-};
 
 /**
  * 加载病情告知
