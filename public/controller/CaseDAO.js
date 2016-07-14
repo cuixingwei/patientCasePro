@@ -21,7 +21,7 @@ exports.getHistoryEvent = function (req, res) {
 
     var station_id = req.session.stationCode;
     console.log('分站编码:' + station_id);
-    if (string.isBlankOrEmpty(station_id) || string.isEquals('1',req.session.personType)) {
+    if (string.isBlankOrEmpty(station_id) || string.isEquals('1', req.session.personType)) {
         station_id = config.stationCode;
     }
 
@@ -287,7 +287,7 @@ exports.getPatientNursing = function (req, res) {
     var page = req.body.page;
     var rows = req.body.rows;
 
-    var sql = 'select * from AuSp120.tb_PatientNursing  where 任务序号=@taskOrder and 任务编码=@taskCode and 病历序号=@patientCaseOrder';
+    var sql = 'select * from AuSp120.tb_PatientNursing  where 任务序号=@taskOrder and 任务编码=@taskCode and 病历序号=@patientCaseOrder order by 日期,时间  ';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
         "name": "taskOrder",
         "value": taskOrder,
@@ -309,25 +309,25 @@ exports.getPatientNursing = function (req, res) {
                     "nurseRecordID": results[i][0].value,
                     "taskCode": results[i][1].value,
                     "taskOrder": results[i][2].value,
-                    "carIdentification": results[i][3].value, //车辆标识
+                    "carIdentification": results[i][3].value || '', //车辆标识
                     "patientCaseOrder": results[i][4].value,
                     "recordDate": results[i][5].value,
                     "recordTime": results[i][6].value,
-                    "sense": results[i][7].value, //神志
-                    "leftSize": results[i][8].value, //左大小
-                    "leftReaction": results[i][9].value, //左反应
-                    "rightSize": results[i][10].value, //右大小
-                    "rightReaction": results[i][11].value,//右反应
-                    "heartRate": results[i][12].value, //心率
-                    "pulse": results[i][13].value, //脉搏
-                    "breath": results[i][14].value, //呼吸
-                    "bloodPressure": results[i][15].value, //血压
-                    "sao2": results[i][16].value, //血氧饱和度
-                    "nurseMeasure": results[i][17].value, //护理措施
-                    "nurseSign": results[i][18].value, //护士签名
-                    "recordDatetime": results[i][19].value, //记录时刻
-                    "recorderCode": results[i][20].value,  //记录着编码
-                    "carCode": results[i][21].value //车辆编码
+                    "sense": results[i][7].value || '', //神志
+                    "leftSize": results[i][8].value || '', //左大小
+                    "leftReaction": results[i][9].value || '', //左反应
+                    "rightSize": results[i][10].value || '', //右大小
+                    "rightReaction": results[i][11].value || '',//右反应
+                    "heartRate": results[i][12].value || '', //心率
+                    "pulse": results[i][13].value || '', //脉搏
+                    "breath": results[i][14].value || '', //呼吸
+                    "bloodPressure": results[i][15].value || '', //血压
+                    "sao2": results[i][16].value || '', //血氧饱和度
+                    "nurseMeasure": results[i][17].value || '', //护理措施
+                    "nurseSign": results[i][18].value || '', //护士签名
+                    "recordDatetime": results[i][19].value || '', //记录时刻
+                    "recorderCode": results[i][20].value || '',  //记录着编码
+                    "carCode": results[i][21].value || '' //车辆编码
                 });
             }
             var grid = {"total": results.length, "rows": result.slice(startIndex, endIndex)};
