@@ -711,6 +711,7 @@ var loadPatientSchedule = function (taskCode, carIdentification, pcOrder) {
             "BPH": data.BPH,
             "BPL": data.BPL,
             "P": data.P,
+            "T": data.T,
             "R": data.R,
             "leftEye": data.leftEye,
             "rightEye": data.rightEye,

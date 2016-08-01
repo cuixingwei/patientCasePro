@@ -266,7 +266,7 @@
                     $("#nurseSign").html(data.nurse);
                     $("#doctor").html(data.doctor);
                     $("#nurse").html(data.nurse);
-                    $("#driver").html(data.driver);
+                    $("#driverSign").html(data.driver);
                     $("#localAddr").html(data.localAddr);
                     $("#caseProvider").html(data.caseProvider);
                     $("#nationality").html(data.nationality);
@@ -665,13 +665,18 @@
                 </tr>
                 <tr>
                     <td colspan="12">
-                        <div style="display: inline-block;margin-right: 20px;border: none;width: 40%">
+                        <div style="display: inline-block;margin-right: 20px;border: none;width: 50%">
                             <span>医生签字:</span>
                             <span id="doctorSign"></span>
                         </div>
                         <div style="display: inline-block;border: none;text-align: left">
                             <span>护士签名:</span>
                             <span id="nurseSign"></span>
+                        </div>
+                        <br>
+                        <div style="display: inline-block;border: none;text-align: left">
+                            <span>司机签名:</span>
+                            <span id="driverSign"></span>
                         </div>
                     </td>
                     <td colspan="13" align="right">

@@ -19,7 +19,7 @@ exports.isBlankOrEmpty = function (data) {
  * @param str2
  * @returns {boolean}
  */
-exports.isEquals = function equals(str1, str2) {
+exports.isEquals = function (str1, str2) {
     if (str1 == str2) {
         return true;
     }
