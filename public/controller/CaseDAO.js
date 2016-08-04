@@ -468,7 +468,7 @@ exports.getPatientScheduleByID = function (req, res) {
     var carIdentification = req.query.carIdentification;
     var patientCaseOrder = req.query.patientCaseOrder;
 
-    var sql = 'select *,convert(varchar(20),到达病人身边时间,120) from AuSp120.tb_PatientSchedule where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
+    var sql = 'select *,convert(varchar(20),到达病人身边时间,120),convert(varchar(20),检查时间,120) from AuSp120.tb_PatientSchedule where 任务编码=@taskCode and 车辆标识=@carIdentification and 病例序号=@patientCaseOrder';
     var params = [{"name": "taskCode", "value": taskCode, "type": "varchar"}, {
         "name": "carIdentification",
         "value": carIdentification,
@@ -527,7 +527,7 @@ exports.getPatientScheduleByID = function (req, res) {
                     "T": results[i][39].value,//体温
                     "eeg": results[i][40].value, //心电图
                     "sbgm": results[i][41].value, //简易血糖仪
-                    "checkTime": results[i][44].value, //检查时间
+                    "checkTime": results[i][47].value, //检查时间
                     "checkResult": results[i][45].value //检查结果
                 });
             }
