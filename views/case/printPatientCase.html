@@ -70,7 +70,9 @@
                     var kczg = '';
                     if (data.kczg == 1) {
                         kczg = '有';
-                    }
+                    }else {
+						kczg = '无';
+					}
                     $("#kczg").html(kczg);
                     $("#eyeLight").html(data.eyeLight);
                     $("#heart").html(data.heart);
@@ -333,7 +335,7 @@
     <div id="tt" class="easyui-tabs" data-options="fit:true">
         <div title="病历主页" style="padding:20px;overflow:auto;">
             <!--startprint1-->
-            <table width="90%" cellpadding="0" cellspacing="0" align="center" border="0" style="">
+            <table width="90%" cellpadding="0" cellspacing="0" align="center" border="0" style="table-layout:fixed;">
                 <caption style="font-size:20px;"><b>三门峡市院前急救病历</b></caption>
                 <tr>
                     <td colspan="25" style="border:none">
@@ -356,7 +358,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="5">
+                    <td colspan="5" width="25%">
                         <span>出车时间</span><br>
                         <span id="outCarTime"></span>
                     </td>
@@ -474,7 +476,7 @@
                     </td>
                 </tr>
                 <tr align="left">
-                    <td align="center" rowspan="13">
+                    <td align="center" rowspan="13" colspan="1" width="20px;">
                         <span>体格检查</span>
                     </td>
                     <td colspan="7" style="border:none">
@@ -525,7 +527,7 @@
                     </td>
                 </tr>
                 <tr align="left">
-                    <td colspan="7" style="border:none">
+                    <td colspan="9" style="border:none">
                         <span>瞳孔左:</span>
                         <span style="display: inline-block" id="leftEye"></span>
                         <span>mm</span>
@@ -533,7 +535,7 @@
                         <span style="display: inline-block" id="rightEye"></span>
                         <span>mm</span>
                     </td>
-                    <td colspan="7" style="border:none">
+                    <td colspan="5" style="border:none">
                         <span>对光反射:</span>
                         <span id="eyeLight"></span>
                     </td>
@@ -664,36 +666,37 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="12">
-                        <div style="display: inline-block;margin-right: 20px;border: none;width: 50%">
+                    <td colspan="12" style="font-size:12px;">
+                        <div style="display: inline-block;margin-right: 3px;">
                             <span>医生签字:</span>
                             <span id="doctorSign"></span>
                         </div>
-                        <div style="display: inline-block;border: none;text-align: left">
+                        <div style="display: inline-block;margin-right: 3px;">
                             <span>护士签名:</span>
                             <span id="nurseSign"></span>
                         </div>
-                        <br>
-                        <div style="display: inline-block;border: none;text-align: left">
+						<div style="display: inline-block;">
                             <span>司机签名:</span>
                             <span id="driverSign"></span>
                         </div>
                     </td>
-                    <td colspan="13" align="right">
-                        <span style="display: inline-block;width: 40px;"></span>
+                    <td colspan="13" align="right" style="font-size:12px;">
+                        <span style="display: inline-block;margin-left:20px;"></span>
                         <span>年</span>
-                        <span style="display: inline-block;width: 25px;"></span>
+                        <span style="display: inline-block;margin-left:20px;"></span>
                         <span>月</span>
-                        <span style="display: inline-block;width: 25px;"></span>
+                        <span style="display: inline-block;margin-left:20px;"></span>
                         <span>日</span>
-                        <span style="display: inline-block;width: 25px;"></span>
+                        <span style="display: inline-block;margin-left:20px;"></span>
                         <span>时</span>
-                        <span style="display: inline-block;width: 25px;"></span>
+                        <span style="display: inline-block;margin-left:20px;"></span>
                         <span>分</span>
                     </td>
                 </tr>
+				</table>
+				<table width="90%" cellpadding="0" cellspacing="0" align="center" border="0" >				
                 <tr>
-                    <td colspan="25">
+                    <td colspan="25" style="border-top:none">
                         <div>
                             <span>病情告知:</span>
                             <span id="tellPat"></span>
