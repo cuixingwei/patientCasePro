@@ -70,9 +70,9 @@
                     var kczg = '';
                     if (data.kczg == 1) {
                         kczg = '有';
-                    }else {
-						kczg = '无';
-					}
+                    } else {
+                        kczg = '无';
+                    }
                     $("#kczg").html(kczg);
                     $("#eyeLight").html(data.eyeLight);
                     $("#heart").html(data.heart);
@@ -84,7 +84,8 @@
                     $("#limb").html(data.limb);
                     $("#others").html(data.others);
                     $("#others1").html(data.others);
-                    $("#CRAMS").html(data.CRAMS);
+                    var cram = data.CRAMS == 0 ? "无" : data.CRAMS;
+                    $("#CRAMS").html(cram);
                     $("#T").html(data.T);
                     var schedule = '';
                     if (data.eeg == 1) {
@@ -93,6 +94,8 @@
                     if (data.sbgm == 1) {
                         schedule += '&nbsp;简易血糖仪';
                     }
+                    $("#checkTime").html(data.checkTime);
+                    $("#checkResult").html(data.checkResult);
                     $("#schedule").html(schedule);
                     $("#arrivePatientTime").html(data.arrivePatientTime);
                     if (data.cyclePoints == 1) {
@@ -215,6 +218,7 @@
                         if (result[i].type == 1) {
                             str1 += n1 + '.' + result[i].illTeller + '&nbsp;';
                             n1++;
+                            $("#showResponse").html("患方对病人病情知情并愿意承担一切后果。").append("<br>");
                         }
                         if (result[i].type == 2) {
                             if (result[i].illTellerCode == 5) {
@@ -282,6 +286,7 @@
                     $("#eyeLight").html(data.eyeLight);
                     $("#otherHandles").html(data.otherHandle);
                     $("#signTime").html(data.signTime);
+                    $("#tellTime").html(data.tellTime);
                     $("#responsiblePersonSign").html(data.responsiblePersonSign);
                     $("#tellerSign").html(data.tellerSign);
                     $("#patientCode").html(data.patientCode);
@@ -310,7 +315,7 @@
                 var str = "";
                 if (data) {
                     for (var i = 0; i < data.length; i++) {
-                        str += (i+1) + "、" + data[i].method + data[i].medication + "&nbsp;&nbsp;"
+                        str += (i + 1) + "、" + data[i].method + data[i].medication + "&nbsp;&nbsp;"
                     }
                 }
                 $("#medications").html(str);
@@ -633,10 +638,18 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="25">
+                    <td colspan="8" style="border-right: none">
                         <span>辅助检查:(&nbsp;</span>
                         <span id="schedule"></span>
                         <span>&nbsp;)</span>
+                    </td>
+                    <td colspan="8" style="border-left: none;border-right: none">
+                        <span style="margin-left: 10px;">检查时间:</span>
+                        <span id="checkTime"></span>
+                    </td>
+                    <td colspan="9" style="border-left: none">
+                        <span style="margin-left: 10px;">检查结果:</span>
+                        <span id="checkResult"></span>
                     </td>
                 </tr>
                 <tr>
@@ -666,35 +679,25 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="12" style="font-size:12px;">
-                        <div style="display: inline-block;margin-right: 3px;">
-                            <span>医生签字:</span>
-                            <span id="doctorSign"></span>
-                        </div>
-                        <div style="display: inline-block;margin-right: 3px;">
-                            <span>护士签名:</span>
-                            <span id="nurseSign"></span>
-                        </div>
-						<div style="display: inline-block;">
-                            <span>司机签名:</span>
-                            <span id="driverSign"></span>
-                        </div>
+                    <td colspan="6" style="font-size:12px;border-right: none">
+                        <span>医生签字:</span>
+                        <span id="doctorSign"></span>
                     </td>
-                    <td colspan="13" align="right" style="font-size:12px;">
-                        <span style="display: inline-block;margin-left:20px;"></span>
-                        <span>年</span>
-                        <span style="display: inline-block;margin-left:20px;"></span>
-                        <span>月</span>
-                        <span style="display: inline-block;margin-left:20px;"></span>
-                        <span>日</span>
-                        <span style="display: inline-block;margin-left:20px;"></span>
-                        <span>时</span>
-                        <span style="display: inline-block;margin-left:20px;"></span>
-                        <span>分</span>
+                    <td colspan="6" style="font-size:12px;border-right: none;border-left: none">
+                        <span>护士签名:</span>
+                        <span id="nurseSign"></span>
+                    </td>
+                    <td colspan="6" style="font-size:12px;border-right: none;border-left: none">
+                        <span>司机签名:</span>
+                        <span id="driverSign"></span>
+                    </td>
+                    <td colspan="7" style="font-size:12px;border-left: none">
+                        <span>签字时间:</span>
+                        <span id="signTime"></span>
                     </td>
                 </tr>
-				</table>
-				<table width="90%" cellpadding="0" cellspacing="0" align="center" border="0" >				
+            </table>
+            <table width="90%" cellpadding="0" cellspacing="0" align="center" border="0">
                 <tr>
                     <td colspan="25" style="border-top:none">
                         <div>
@@ -710,29 +713,25 @@
                             <span id="tellOther"></span>
                         </div>
                         <div>
-                            <span>告知人签名:</span>
-                            <span id="tellerSign" style="display: inline-block;width: 80px;"></span>
-                            <span style="display: inline-block;">
-                                <span id="mYear" style="display: inline-block;width: 50px;"></span>
-                                 <span>年</span>
-                                 <span id="mMonth" style="display: inline-block;width: 50px;"></span>
-                                 <span>月</span>
-                                 <span id="mDay" style="display: inline-block;width: 50px;"></span>
-                                 <span>日</span>
-                                 <span id="mHour" style="display: inline-block;width: 50px;"></span>
-                                 <span>时</span>
-                                 <span id="mMinute" style="display: inline-block;width: 50px;"></span>
-                                 <span>分</span>
-                            </span>
+                            <span id="showResponse"></span>
+                        </div>
+                        <div style="font-size: 12px;">
+                            <div style="display: inline-block;width: 33%;float: left">
+                                <span>告知人签名:</span>
+                                <span id="tellerSign" style="display: inline-block;width: 80px;"></span>
+                            </div>
+                            <div style="display: inline-block;width: 33%;">
+                                <span>责任人签名:</span>
+                                <span id="responsiblePersonSign" style="width: 50px;display: inline-block"></span>
+                            </div>
+                            <div style="display: inline-block;width: 33%;float: right">
+                                <span>告知时间:</span>
+                                <span id="tellTime"></span>
+                            </div>
                         </div>
                         <div>
-                            <span>患方对病人病情知情并愿意承担一切后果。</span><br>
-                            <span>责任人签名:</span>
-                            <span id="responsiblePersonSign" style="width: 50px;display: inline-block"></span>
                             <span>责任人与患者关系:</span>
                             <span id="relation" style="width: 50px;display: inline-block"></span>
-                            <span>签字时间</span>
-                            <span id="signTime"></span>
                         </div>
                     </td>
                 </tr>

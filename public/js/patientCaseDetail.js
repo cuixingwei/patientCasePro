@@ -28,7 +28,7 @@ var addMedication = function () {
 /*保存用药项*/
 var saveMedication = function () {
     if (page == 'add') {
-        pcOrder =  parseInt(caseNumbers) + 1;
+        pcOrder = parseInt(caseNumbers) + 1;
     }
     if (addMedicationFlag == 1) {
         $.post('/cases/addMedication', {
@@ -54,14 +54,14 @@ var saveMedication = function () {
                 });
             }
         });
-    }else{
+    } else {
         $.messager.alert('提示', '请先点击添加!', 'info');
     }
 };
 /*删除用药记录项*/
 var deleteMedication = function () {
     if (page == 'add') {
-        pcOrder =  parseInt(caseNumbers) + 1;
+        pcOrder = parseInt(caseNumbers) + 1;
     }
     if (medicationRecordID == -1) {
         $.messager.alert('提示', '请选择你要删除的记录!', 'info');
@@ -76,7 +76,7 @@ var deleteMedication = function () {
             }, function (data) {
                 if (data.flag == 1) {
                     /*加载用药记录项*/
-                    pcOrder =  parseInt(caseNumbers) + 1;
+                    pcOrder = parseInt(caseNumbers) + 1;
                     medicationListGrid.datagrid('load');
                 } else {
                     $.messager.alert('提示', '删除用药记录项失败!', 'info');
@@ -144,7 +144,7 @@ var init = function () {
                     },
                     onClickRow: function (rowIndex, rowData) {
                         $("#medicationMethod").combobox('setValue', rowData.method);
-                        $("#medicationName").combobox('setText',rowData.medication);
+                        $("#medicationName").combobox('setText', rowData.medication);
                         addMedicationFlag = 0;
                         medicationRecordID = rowData.ID;
                     }
@@ -361,7 +361,8 @@ var init = function () {
         editable: false,
         onLoadSuccess: function (data) {
             if (data) {
-                $('#station').combobox('setValue', data[0].id);
+                var sCode = isBlankOrEmpty(stationCode) ? '999' : stationCode;
+                $('#station').combobox('setValue', sCode);
             }
         }
     });
