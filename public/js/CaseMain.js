@@ -391,6 +391,7 @@ var savePatientCase = function () {
     $('#nurse').combobox('setValue', $('#nurse').combobox('getText'));
     $('#driver').combobox('setValue', $('#driver').combobox('getText'));
     $('#doctorSign').combobox('setValue', $('#doctorSign').combobox('getText'));
+    $('#T').combobox('setValue', $('#T').combobox('getText'));
     if (addPatientCaseFlag == 1) { //添加
         var url;
         url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
