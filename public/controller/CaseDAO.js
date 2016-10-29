@@ -541,6 +541,7 @@ exports.getPatientCases = function (req, res) {
     var startTime = req.body.startTime;
     var endTime = req.body.endTime;
     var taskCode = req.query.taskCode;
+	var patientCode = req.body.patientCode;//病历编码
     var patientCaseOrder = req.query.patientCaseOrder; //病历序号
     var carIdentification = req.query.carIdentification; //车辆标识
     var patientName = req.body.patientName;
@@ -581,6 +582,11 @@ exports.getPatientCases = function (req, res) {
         if (!string.isBlankOrEmpty(illnessCode)) {
             sql += ' and pc.病情编码=@illnessCode';
         }
+		
+		if (!string.isBlankOrEmpty(patientCode)) {
+			 patientCode = '%' + patientCode + '%';
+            sql += ' and pc.病历编码 like @patientCode';
+        }
 
         if (!string.isBlankOrEmpty(treatResultCode)) {
             sql += ' and pc.救治结果编码=@treatResultCode';
@@ -601,7 +607,8 @@ exports.getPatientCases = function (req, res) {
         }
     }
     sql += ' order by pc.记录时刻 desc';
-    var params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
+    var params = [{"name": "taskCode", "value": taskCode, "type": "char"},
+	{"name": "patientCode", "value": patientCode, "type": "varchar"}, {
         "name": "startTime",
         "value": startTime,
         "type": "varchar"
