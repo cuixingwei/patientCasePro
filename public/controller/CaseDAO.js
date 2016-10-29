@@ -340,12 +340,12 @@ exports.getPatientsByID = function (req, res) {
     var taskCode = req.query.taskCode;
     var taskOrder = req.query.taskOrder;
     var sqlData = {
-        statement: 'select pc.*,dp.NameM,di.NameM,ddc.NameM,ddr.NameM,dill.NameM,ddcs.NameM,dco.NameM,ddp.NameM from AuSp120.tb_PatientCase pc         ' +
+        statement: 'select pc.*,dp.NameM,di.NameM,ddc.NameM,ddr.NameM,dill.NameM,ddcs.NameM,dco.NameM,ddp.NameM,dr.NameM from AuSp120.tb_PatientCase pc         ' +
         'left outer join AuSp120.tb_DProfession dp on dp.Code=pc.职业编码    left outer join AuSp120.tb_DIdentity di on di.Code=pc.身份编码    ' +
         'left outer join AuSp120.tb_DDiseaseClass ddc on ddc.Code=pc.疾病科别编码    left outer join AuSp120.tb_DDiseaseReason ddr on ddr.Code=pc.病因编码    ' +
         'left outer join AuSp120.tb_DILLState dill on dill.Code=pc.病情编码    left outer join AuSp120.tb_DDiseaseClassState ddcs on ddcs.Code=pc.分类统计编码    ' +
         'left outer join AuSp120.tb_DCooperate dco on dco.Code=pc.病家合作编码    left outer join AuSp120.tb_DDeathProve ddp on ddp.Code=pc.死亡证明编码 ' +
-        'where pc.任务序号=@taskOrder and pc.任务编码=@taskCode',
+        'left outer join AuSp120.tb_DResult dr on dr.Code=pc.救治结果编码 where pc.任务序号=@taskOrder and pc.任务编码=@taskCode',
         params: [{"name": "taskOrder", "value": taskOrder, "type": "int"}, {
             "name": "taskCode",
             "value": taskCode,
@@ -423,7 +423,8 @@ exports.getPatientsByID = function (req, res) {
                     "illness": results[i][60].value, //病情
                     "class": results[i][61].value, //分类统计
                     "patientCooperationName": results[i][62].value, //病家合作
-                    "death": results[i][63].value //死亡证明
+                    "death": results[i][63].value, //死亡证明
+					"treatResult": results[i][64].value
                 });
             }
             var grid = {"total": results.length, "rows": result};

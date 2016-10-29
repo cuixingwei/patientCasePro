@@ -91,7 +91,7 @@
                     $("#patientCooperation").html(data.patientCooperationName);
                     $("#nationCode").html(data.nation);
                     $("#illnessCode").html(data.illness);
-                    $("#deathCode").html(data.death);
+                    $("#death").html(data.death);
                     $("#patientReasonCode").html(data.patientReason);
                     $("#classCode").html(data.class);
                     $("#linkMan").html(data.linkMan);
@@ -106,6 +106,7 @@
                     $("#nurse").html(data.nurse);
                     $("#driver").html(data.driver);
                     $("#outAddr").html(data.outAddr);
+					$("#treatResult").html(data.treatResult);
                 }
             }); //结束加载病历信息
         });
@@ -233,7 +234,7 @@
         </td>
         <td colspan="5">
             <span>死亡证明:</span>
-            <span id="deathCode"></span>
+            <span id="death"></span>
         </td>
         <td colspan="10">
             <span>联系电话:</span>
