@@ -8,191 +8,247 @@
         .tr_height {
             margin-bottom: 3px;
         }
+
+        .label_1 {
+            text-align: right;
+            display: inline-block;
+            width: 15%;
+            margin-right: 10px;;
+        }
+
+        .input_1 {
+            width: 50%;
+        }
     </style>
-    <script src="lib/easyui/datagrid-detailview.js"></script>
     <script type="text/javascript">
         var grid;
-        var chargeListGrid;
-        var addChargeFlag = 0; //添加收费记录标志
-        var chargeRecordID = -1;
-        var chargeNumbers = 0;
-        var carIdentification, taskCode, pcOrder, taskOrder;
+        var operate = 0; //1添加2编辑
+        var personType = '<%= personType %>';
+        var personTypes;//所有人员类型
+        var userID; //所有的工号，用来在添加和修改用户时去重
+        var isRepeat = 0;
         var stationCode = '<%= stationCode %>';
-        /*查看病历*/
-        var viewFun = function (taskCode, pcOrder, carIdentification, taskOrder) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder+ '&taskOrder=' + taskOrder;
-            window.open(url);
-        };
-        /*打印病历*/
-        var printFun = function (taskCode, pcOrder, carIdentification, taskOrder) {
-            var url = "/printPatientCase?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&patientCaseOrder=' + pcOrder + '&taskOrder=' + taskOrder;
-            window.open(url);
-        };
-        /*收费*/
-        var addFeeFun = function (tc, po, ci) {
-            carIdentification = ci;
-            taskCode = tc;
-            pcOrder = po;
-            $('#charge_window').dialog('open');
-        };
+        /*验证所填工号是否系统中已存在*/
+        var reviewRepeat = function (target) {
+            isRepeat = 0;
+            var values = $(target).val().trim();
+            $.each(userID, function (i, data) {
+                if (data.userId == values) {
+                    isRepeat = 1;
+                }
+            });
 
-        /*添加收费项*/
-        var addCharge = function () {
-            var data = $('#chargeName').combobox('getData');
-            if (data.length > 0) {
-                $('#chargeName').combobox('setValue', data[0].id);
-            }
-            $("#chargePrice").numberbox({value: 0});
-            addChargeFlag = 1;
         };
-        /*保存收费项*/
-        var saveCharge = function () {
-            if (addChargeFlag == 1) {
-                $.post('/cases/addCharge', {
-                    "taskCode": taskCode,
-                    "carIdentification": carIdentification,
-                    "patientCaseOrder": pcOrder,
-                    "totalMoney": $("#totalMoney").html(),
-                    "chargeNumbers": chargeNumbers,
-                    "chargeCode": $("#chargeName").combobox('getValue'),
-                    "chargePrice": $("#chargePrice").numberbox('getValue')
-                }, function (data) {
-                    if (data.flag == 1) {
-                        /*加载收费信息列表*/
-                        chargeListGrid.datagrid('load', {
-                            taskCode: taskCode,
-                            carIdentification: carIdentification,
-                            patientCaseOrder: pcOrder
-                        });
-                        addChargeFlag = 0;
-                        grid.datagrid('load', cxw.serializeObject($('#searchForm')));
-                    } else if (data.flag == 2) {
-                        $.messager.alert('提示', '添加收费项失败!', 'info');
+        /*修改/添加人员信息后提交*/
+        var submitForm = function (id) {
+            var values = $("#stationAdd").combobox('getText');
+            $("#stationName").val(values);
+            values = $("#departmentCodeAdd").combobox('getText');
+            $("#departmentName").val(values);
+            if ($("#usernameAdd").val() == '' || $("#userIdAdd").val() == '') {
+                $.messager.alert('提示', '姓名和工号不能为空!', 'info');
+            } else {
+                var url = '';
+                if (operate == 1) {
+                    url = 'cases/addPerson?operate=' + operate;
+                    if (isRepeat == 1) {
+                        $.messager.alert('提示', '你所填写的工号系统中已存在，请重新输入!', 'info');
+                        $("#userIdAdd").focus().val('');
+                        return;
+                    }
+                } else if (operate == 2) {
+                    url = 'cases/editPerson?operate=' + operate + '&id=' + id;
+                }
+                $.post(url, cxw.serializeObject($('#personForm')), function (success) {
+                    if (!success) {
+                        if (operate == 1) {
+                            $.messager.alert('提示', '添加失败!', 'info');
+                        } else {
+                            $.messager.alert('提示', '修改失败!', 'info');
+                        }
                     } else {
-                        $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-                            window.location.href = "/";
-                        });
+                        if (operate == 1) {
+                            $.messager.alert('提示', '添加成功!', 'info');
+                        } else {
+                            $.messager.alert('提示', '修改成功!', 'info');
+                        }
+                        grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                        $('#person_window').dialog('close');
                     }
                 });
             }
         };
-        /*删除收费*/
-        var deleteCharge = function () {
-            if (chargeRecordID == -1) {
-                $.messager.alert('提示', '请选择你要删除的记录!', 'info');
-            } else {
-                $.messager.alert('警告', '你确定要删除该条记录嘛!', 'info', function (r) {
-                    $.post('/cases/deleteCharge', {
-                        "chargeRecordID": chargeRecordID,
-                        "taskCode": taskCode,
-                        "carIdentification": carIdentification,
-                        "patientCaseOrder": pcOrder,
-                        "totalMoney": $("#totalMoney").html(),
-                        "chargeNumbers": chargeNumbers,
-                        "chargePrice": $("#chargePrice").numberbox('getValue')
-                    }, function (data) {
-                        if (data.success) {
-                            /*加载收费信息列表*/
-                            chargeListGrid.datagrid('load', {
-                                taskCode: taskCode,
-                                carIdentification: carIdentification,
-                                patientCaseOrder: pcOrder
-                            });
-                            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
-                        } else {
-                            $.messager.alert('提示', '删除收费项失败!', 'info');
-                            chargeRecordID = -1;
-                        }
-                    });
-                });
-            }
-        };
-
-        /* 初始化页面标签 */
-        function init() {
-            /*收费对话框初始化*/
-            $('#charge_window').show().dialog({
+        /*添加人员*/
+        var addFun = function () {
+            operate = 1;
+            $('#person_window').show().dialog({
+                width: 500,
+                height: 410,
+                title: '[添加/修改]人员信息',
                 modal: true,
                 closable: true,
                 buttons: [{
-                    text: '关闭',
-                    left: true,
+                    text: '保存',
                     handler: function () {
-                        $('#charge_window').dialog('close');
+                        submitForm();
+                    }
+                }, {
+                    text: '返回',
+                    handler: function () {
+                        $('#person_window').dialog('close');
                     }
                 }],
                 onOpen: function () {
-                    /*收费列表*/
-                    chargeListGrid = $('#chargeList').datagrid(
-                            {
-                                url: '/cases/getChargeByID?taskCode=' + taskCode + '&carIdentification=' + carIdentification + '&patientCaseOrder=' + pcOrder,
-                                pagePosition: 'bottom',
-                                pagination: true,
-                                striped: true,
-                                singleSelect: true,
-                                rownumbers: true,
-                                idField: 'acceptTime',
-                                pageSize: 20,
-                                pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
-                                columns: [[{
-                                    field: 'name',
-                                    title: '收费项',
-                                    width: "30%",
-                                    align: 'center'
-                                }, {
-                                    field: 'price',
-                                    title: '金额',
-                                    width: "55%",
-                                    align: 'center'
-                                }]],
-                                onLoadSuccess: function (data) {
-                                    if (data.rows.length > 0) {
-                                        $("#totalMoney").html(data.totalMoney);
-                                        $("#chargeName").combobox('setValue', data.rows[0].id);
-                                        $("#chargePrice").numberbox('setValue', data.rows[0].price);
-                                        chargeNumbers = data.rows.length;
-                                        chargeRecordID = data.rows[0].chargeID;
-                                        chargeListGrid.datagrid('selectRow', 0);//光标指向第一个
-                                    } else {
-                                        chargeRecordID = -1;
-                                        $("#totalMoney").html(0);
-                                        $("#chargeName").combobox('setValue', 1);
-                                        $("#chargePrice").numberbox('setValue', '0');
-                                    }
-                                },
-                                onClickRow: function (rowIndex, rowData) {
-                                    $("#chargeName").combobox('setValue', rowData.id);
-                                    $("#chargePrice").numberbox('setValue', rowData.price);
-                                    addChargeFlag = 0;
-                                    chargeRecordID = rowData.chargeID;
-                                }
-                            });
+                    //获取工号列表
+                    $.post('/cases/getPersons', function (data) {
+                        userID = data.rows;
+                        $("#personForm").form('load', {
+                            "userId": '',
+                            "username": '',
+                            "password": '',
+                            "personTypeCode": '7',
+                            "flag": 1,
+                            "valid": 0,
+                            "departmentCode": '',
+                            "driverCode": '',
+                            "qualificationCode": '',
+                            "licenceCode": '',
+                            "trainCode": ''
+                        });
+                    });
                 }
-            }).dialog('close');
+            });
+        };
+        /*编辑人员*/
+        var editFun = function (ID) {
+            operate = 2;
+            $('#person_window').show().dialog({
+                width: 500,
+                height: 410,
+                title: '[添加/修改]人员信息',
+                modal: true,
+                closable: true,
+                buttons: [{
+                    text: '保存',
+                    handler: function () {
+                        submitForm(ID);
+                    }
+                }, {
+                    text: '返回',
+                    handler: function () {
+                        $('#person_window').dialog('close');
+                    }
+                }],
+                onOpen: function () {
+                    //获取工号列表
+                    $.post('/cases/getPersons', function (data) {
+                        userID = data.rows;
+                    });
+                    var url = '/cases/getPersonById?id=' + ID;
+                    $.post(url, function (data) {
+                        if (data.length > 0) {
+                            data = data[0];
+                            $("#personForm").form('load', {
+                                "station": data.stationCode,
+                                "userId": data.userId,
+                                "username": data.username,
+                                "password": data.password,
+                                "personTypeCode": data.personTypeCode,
+                                "flag": data.flag,
+                                "departmentCode": data.departmentCode,
+                                "driverCode": data.driverCode,
+                                "qualificationCode": data.qualificationCode,
+                                "licenceCode": data.licenceCode,
+                                "trainCode": data.trainCode,
+                                "valid": data.valid
+                            });
+                        }
+                    });
 
-            $('#startTime').datetimebox({
-                required: true,
-                value: firstOfMouth()
+                }
             });
-            $('#endTime').datetimebox({
-                value: getCurrentTime()
-            });
-            /*病情*/
-            $('#illnessCode').combobox({
-                url: '/dictionary/getDILLState',
+        };
+
+
+        /* 初始化页面标签 */
+        function init() {
+
+            /*科室编码*/
+            $('#departmentCode').combobox({
+                url: '/dictionary/getDDepartment?type=qb',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
                 editable: false,
+                panelHeight: 'auto',
                 onLoadSuccess: function (data) {
                     if (data) {
-                        $('#getDILLState').combobox('setValue', data[0].id);
+                        $('#departmentCode').combobox('setValue', data[0].id);
                     }
                 }
             });
+            $('#departmentCodeAdd').combobox({
+                url: '/dictionary/getDDepartment?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                panelHeight: 'auto',
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#departmentCodeAdd').combobox('setValue', data[0].id);
+                    }
+                }
+            });
+            /*人员类型编码*/
+            $('#personType').combobox({
+                url: '/dictionary/getPersonType?type=qb',
+                valueField: 'id',
+                textField: 'name',
+                method: 'get',
+                editable: false,
+                panelHeight: 'auto',
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#personType').combobox('setValue', data[0].id);
+                    }
+                    var str = '';
+                    var n = 0;
+                    $.each(data, function (i, db) {
+                        console.log('i:' + i + ';' + db.id + ';' + db.name);
+                        if (db.name != '--请选择--') {
+                            console.log('i2:' + i + ';' + db.id + ';' + db.name);
+                            if (stationCode == '101') { //中心登录，人员类型全部显示
+                                if (db.id == '7') {
+                                    str += '<input type="radio" checked="checked"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    n++;
+                                } else {
+                                    str += '<input type="radio"   name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    n++;
+                                }
+                                if (n == 4) {
+                                    str += '<br/>';
+                                }
+                            } else {
+                                if (db.id == '6' || db.id == '7' || db.id == '8' || db.id == '9' || db.id == '3') {
+                                    if (db.id == '7') {
+                                        str += '<input type="radio" checked="checked"  name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    } else {
+                                        str += '<input type="radio"   name="personTypeCode" value="' + db.id + '"/>' + db.name;
+                                    }
+                                }
+                            }
+
+                        }
+                    });
+                    $("#personTypeDiv").empty().append(str);
+                }
+            });
+
+
             /*分站编码*/
             $('#station').combobox({
-                url: '/dictionary/getStations?type=qb',
+                url: '/dictionary/getStations?type=qb&page=person',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
@@ -203,28 +259,21 @@
                     }
                 }
             });
-            /*救治结果*/
-            $('#treatResultCode').combobox({
-                url: '/dictionary/getDResult',
+            $('#stationAdd').combobox({
+                url: '/dictionary/getStations?type=add',
                 valueField: 'id',
                 textField: 'name',
                 method: 'get',
-                panelHeight: 'auto',
-                editable: false
+                editable: false,
+                onLoadSuccess: function (data) {
+                    if (data) {
+                        $('#stationAdd').combobox('setValue', data[0].id);
+                    }
+                }
             });
-            /*收费项字典表*/
-            $('#chargeName').combobox({
-                url: '/dictionary/getDChargeXMCode',
-                valueField: 'id',
-                textField: 'name',
-                method: 'get',
-                panelHeight: 'auto',
-                editable: false
-            });
-
             grid = $('#grid').datagrid(
                     {
-                        url: '/cases/getPatientCases?type=grid',
+                        url: '/cases/getPersons',
                         pagePosition: 'bottom',
                         pagination: true,
                         striped: true,
@@ -235,127 +284,88 @@
                         pageSize: 20,
                         pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
                         columns: [[{
-                            field: 'acceptStartTime',
-                            title: '呼救时刻',
-                            width: "13%",
-                            align: 'center'
-                        }, {
-                            field: 'patientName',
+                            field: 'username',
                             title: '姓名',
-                            width: "5%",
-                            align: 'center',
-                            sortable: true
-                        }, {
-                            field: 'sex',
-                            title: '性别',
-                            width: "5%",
+                            width: "10%",
                             align: 'center'
                         }, {
-                            field: 'age',
-                            title: '年龄',
-                            width: "5%",
+                            field: 'userId',
+                            title: '工号',
+                            width: "10%",
                             align: 'center'
                         }, {
-                            field: 'doctorDiagnosis',
-                            title: '初步诊断',
-                            width: "15%",
-                            resizable: true,
+                            field: 'personType',
+                            title: '人员类型',
+                            width: "10%",
                             align: 'center'
                         }, {
-                            field: 'illness',
-                            title: '病情',
-                            width: "4%",
-                            resizable: true,
+                            field: 'driverCode',
+                            title: '驾驶证编码',
+                            width: "11%",
                             align: 'center'
                         }, {
                             field: 'station',
-                            title: '分站',
-                            width: "7%",
+                            title: '分站名称',
+                            width: "12%",
                             align: 'center'
                         }, {
-                            field: 'treatResult',
-                            title: '救治结果',
-                            width: "6%",
-                            resizable: true,
-                            align: 'center'
-                        }, {
-                            field: 'driver',
-                            title: '司机',
-                            width: "5%",
-                            align: 'center'
-                        }, {
-                            field: 'doctor',
-                            title: '医生',
-                            width: "5%",
-                            resizable: true,
-                            align: 'center'
-                        }, {
-                            field: 'nurse',
-                            title: '护士',
-                            width: "5%",
-                            align: 'center'
-                        }, {
-                            field: 'charge',
-                            title: '费用',
-                            width: "5%",
+                            field: 'flag',
+                            title: '启用',
+                            width: "10%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                if (value) {
-                                    return value;
+                                if (value == 1) {
+                                    return '<img  src="/images/YES.gif"    style = "vertical-align: middle;" > ';
                                 } else {
-                                    return '0.00';
+                                    return '<img  src="/images/NO.gif"    style = "vertical-align: middle;" > ';
                                 }
                             }
                         }, {
-                            field: 'chargeFlag',
-                            title: '收费标志',
-                            width: "5%",
+                            field: 'online',
+                            title: '上班状态',
+                            width: "10%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                if (value) {
-                                    return '已收';
+                                if (value == 1) {
+                                    return '已上班';
                                 } else {
-                                    return '未收';
+                                    return '未上班';
                                 }
                             }
                         }, {
-                            field: 'fee',
-                            title: '收费',
-                            width: "6%",
+                            field: 'alter',
+                            title: '编辑',
+                            width: "10%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                return cxw.formatString('<button type="button" onclick="addFeeFun(\'{0}\',\'{1}\',\'{2}\')">收费</button> ', row.taskCode, row.pcOrder, row.carIdentification);
+                                return cxw
+                                        .formatString(
+                                        '<button type="button" onclick="editFun(\'{0}\')">{1}</button>',
+                                        row.id, '编辑');
                             }
                         }, {
-                            field: 'view',
-                            title: '查看',
-                            width: "4%",
+                            field: 'valid',
+                            title: '审核状态',
+                            width: "10%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                return cxw.formatString('<img  onclick="viewFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/>', row.taskCode, row.pcOrder, row.carIdentification, row.taskOrder);
-                            }
-                        }, {
-                            field: 'print',
-                            title: '打印',
-                            width: "4%",
-                            align: 'center',
-                            formatter: function (value, row, index) {
-                                return cxw.formatString('<img  onclick="printFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/printer/printer.png"/>', row.taskCode, row.pcOrder, row.carIdentification, row.taskOrder);
+                                if (value == 1) {
+                                    return '<img  src="/images/YES.gif"    style = "vertical-align: middle;" > ';
+                                } else {
+                                    return '<img  src="/images/NO.gif"    style = "vertical-align: middle;" > ';
+                                }
                             }
                         }]],
-                        toolbar: '#toolbar',
-                        onBeforeLoad: function (param) {
-                            var varify = cxw.checkStartTimeBeforeEndTime(
-                                    '#startTime', '#endTime');
-                            if (!varify) {
-                                parent.$.messager.alert('警告', '结束时间要大于开始时间', 'warning');
-                            }
-                        }
+                        toolbar: '#toolbar'
                     });
         }
 
         $(document).ready(function () {
             init();
+            if (!(personType == 2 || personType == 1 || personType == 11)) {
+                document.getElementById("validDiv").style.visibility = "hidden";
+            }
+
             if (stationCode != '101') { //隐藏分站选项
                 document.getElementById("stationDiv").style.visibility = "hidden";
             }
@@ -364,18 +374,22 @@
     </script>
 </head>
 <body class="easyui-layout" data-options="fit:true,border:false">
-<div id="toolbar" style="height: 80px;">
+<div id="toolbar" style="height: 60px;">
     <form id="searchForm">
         <div class="tr_height">
-            <div style="width: 33%;float: left;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
-                <input id="startTime" name="startTime" style="width: 50%;"/>
+            <div style="width: 24%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">姓名:</label>
+                <input name="username" style="width: 50%;"/>
             </div>
-            <div style="width: 33%;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
-                <input id="endTime" name="endTime" style="width: 50%;"/>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">工号:</label>
+                <input name="userId" style="width: 50%;"/>
             </div>
-            <div style="width: 33%;display: inline-block;text-align: center">
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">人员类型:</label>
+                <input style="width: 50%" name="personType" id="personType"/>
+            </div>
+            <div style="width: 24%;display: inline-block;text-align: center">
                 <a href="javascript:void(0);" class="easyui-linkbutton"
                    style="text-align: right;display: inline-block;"
                    data-options="iconCls:'ext-icon-zoom',plain:true"
@@ -383,31 +397,27 @@
             </div>
         </div>
         <div class="tr_height">
-            <div style="width: 33%;float: left;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">患者姓名:</label>
-                <input style="width: 50%" name="patientName"/>
+            <div style="width: 24%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">启用状态:</label>
+                <select class="easyui-combobox" name="flag" style="width: 50%"
+                        data-options="editable:false,panelHeight:'auto'">
+                    <option value="">--请选择--</option>
+                    <option value="1">启动</option>
+                    <option value="0">未启用</option>
+                </select>
             </div>
-            <div style="width: 33%;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病情:</label>
-                <input style="width: 50%" id="illnessCode" name="illnessCode"/>
-            </div>
-            <div style="width: 33%;display: inline-block;float:right" id="stationDiv">
+            <div style="width: 24%;display: inline-block;" id="stationDiv">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">分站:</label>
                 <input style="width: 50%" id="station" name="station"/>
             </div>
-        </div>
-        <div class="tr_height">
-            <div style="width: 33%;display: inline-block;float: left">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">救治结果:</label>
-                <input style="width: 50%" id="treatResultCode" name="treatResultCode"/>
+            <div style="width: 24%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">科室:</label>
+                <input style="width: 50%" id="departmentCode" name="departmentCode"/>
             </div>
-            <div style="width: 33%;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">送往地点:</label>
-                <input style="width: 50%" name="toAddr"/>
-            </div>
-			<div style="width: 33%;display: inline-block;float:right;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病历编码:</label>
-                <input style="width: 50%" name="patientCode"/>
+            <div style="width: 24%;display: inline-block;text-align: center" onclick="addFun();">
+                <img alt="新增人员" src="/images/plus.png"
+                     style="vertical-align: middle;"> <span
+                    style="vertical-align: middle;">新增人员</span>
             </div>
         </div>
     </form>
@@ -416,43 +426,66 @@
 <div data-options="region:'center',fit:true,border:false">
     <table id="grid" data-options="fit:true,border:false"></table>
 </div>
-<div id="charge_window" title="收费" style="width:600px;height:320px;display: none;"
-     data-options="modal:true">
-    <form>
-        <div id="chargeRecordDiv" style="padding: 5px;">
-            <div class="easyui-panel" collapsible="false"
-                 style="width:100%;height:180px;text-align: center">
-                <table id="chargeList" data-options="fit:true,border:false"></table>
+<div id="person_window" style="display: none;padding: 10px;">
+    <form id="personForm">
+        <div id="personDiv">
+            <div class="tr_height">
+                <label class="label_1">单位名称:</label>
+                <input id="stationAdd" name="station" style="width: 50%;"/>
+                <input id="stationName" name="stationName" type="hidden">
             </div>
-            <div style="width:100%;height:50px;text-align: center">
-                <div style="height: 25px;display: block;margin-top:5px;">
-                    <span>收费项</span>
-                    <input id="chargeName" name="chargeName" style="width: 150px;"/>
-                    <span>金额</span>
-                    <input id="chargePrice" name="chargePrice" style="width: 70px;" class="easyui-numberbox"
-                           data-options="min:0,precision:2"/>
-                    <span style="float: right;margin-right: 20px;">
-                        <span>合计金额：</span>
-                        <span style="color: red" id="totalMoney">0</span>
-                    </span>
+            <div class="tr_height">
+                <label class="label_1">人员类型:</label>
+
+                <div style="display: inline-block" id="personTypeDiv">
                 </div>
-                <div style="height: 25px;display: block;margin-top:5px;">
-                        <span style="width: 100px;display: inline-block">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
-                               onclick="javascript:addCharge();">添加</a>
-                        </span>
-                        <span style="width: 100px;display: inline-block">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
-                               onclick="javascript:saveCharge();">保存</a>
-                        </span>
-                         <span style="width: 100px;display: inline-block">
-                            <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
-                               onclick="javascript:deleteCharge();">删除</a>
-                        </span>
-                </div>
+            </div>
+            <div class="tr_height">
+                <label class="label_1">科室:</label>
+                <input id="departmentCodeAdd" name="departmentCode" style="width: 50%;"/>
+                <input type="hidden" id="departmentName" name="departmentName">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">姓名:</label>
+                <input id="usernameAdd" name="username" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">工号:</label>
+                <input name="userId" id="userIdAdd" class="input_1" onchange="reviewRepeat(this);">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">密码:</label>
+                <input name="password" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">启用标志:</label>
+                <input type="radio" value="1" name="flag" checked="checked">启用
+                <input type="radio" value="0" name="flag">禁用
+            </div>
+            <div class="tr_height" id="validDiv">
+                <label class="label_1">审核状态:</label>
+                <input type="radio" value="1" name="valid" checked="checked">通过
+                <input type="radio" value="0" name="valid">未通过
+            </div>
+            <div class="tr_height">
+                <label class="label_1">驾驶证编码:</label>
+                <input name="driverCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">资格证编码:</label>
+                <input name="qualificationCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">执业证编码:</label>
+                <input name="licenceCode" class="input_1">
+            </div>
+            <div class="tr_height">
+                <label class="label_1">培训证编码:</label>
+                <input name="trainCode" class="input_1">
             </div>
         </div>
     </form>
 </div>
+
 </body>
 </html>
