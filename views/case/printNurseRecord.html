@@ -38,10 +38,10 @@
                 if (result.rows.length > 0) {
                     $.each(result.rows, function (i, data) {
                         var datetime = data.recordDate + ' ' + data.recordTime;
-                        var str = cxw.formatString('<tr><th colspan="5"><span>{0}</span></th><th colspan="2"><span>{1}</span></th><th><span>{2}</span></th>' +
-                                '<th><span>{3}</span></th><th><span>{4}</span></th><th><span>{5}</span></th><th colspan="2"><span>{6}</span></th>' +
-                                '<th colspan="2"><span>{7}</span></th><th colspan="2"><span>{8}</span></th><th colspan="3"><span>{9}</span></th>' +
-                                '<th colspan="3"><span>{10}</span></th><th colspan="10"><span>{11}</span></th></tr>', datetime, data.sense, data.leftSize,
+                        var str = cxw.formatString('<tr><td colspan="5"><span>{0}</span></td><td colspan="2"><span>{1}</span></td><td><span>{2}</span></td>' +
+                                '<td><span>{3}</span></td><td><span>{4}</span></td><td><span>{5}</span></td><td colspan="2"><span>{6}</span></td>' +
+                                '<td colspan="2"><span>{7}</span></td><td colspan="2"><span>{8}</span></td><td colspan="3"><span>{9}</span></td>' +
+                                '<td colspan="3"><span>{10}</span></td><td colspan="10" align="left"><span style="font-size: 12px;">{11}</span></td></tr>', datetime, data.sense, data.leftSize,
                                 data.leftReaction, data.rightSize, data.rightReaction, data.heartRate, data.pulse, data.breath, data.bloodPressure, data.sao2, data.nurseMeasure);
                         $("#tableNurse").append(str);
                     });
