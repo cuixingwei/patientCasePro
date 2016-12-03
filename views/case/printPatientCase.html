@@ -58,6 +58,51 @@
                     $("#cureMeasures").html(data.cureMeasure);
                     $("#CRAMS").html(data.CRAMS);
                     $("#T").html(data.T);
+                    if(data.cyclePoints == 1){
+                        $("#cyclePoints").html("无毛细血管充盈或收缩压≤59mmHg");
+                    }
+                    if(data.cyclePoints == 2){
+                        $("#cyclePoints").html("毛细血管充盈迟缓或收缩压89~60mmHg");
+                    }
+                    if(data.cyclePoints == 3){
+                        $("#cyclePoints").html("无毛细血管充盈或收缩压≤59mmHg");
+                    }
+                    if(data.breathPoints == 1){
+                        $("#breathPoints").html("无自主呼吸");
+                    }
+                    if(data.breathPoints == 2){
+                        $("#breathPoints").html("不正常（费力、浅或呼吸＞35次/min）");
+                    }
+                    if(data.breathPoints == 3){
+                        $("#breathPoints").html("正常");
+                    }
+                    if(data.abdomenPoints == 1){
+                        $("#abdomenPoints").html("连枷胸、板状腹、血腹");
+                    }
+                    if(data.abdomenPoints == 2){
+                        $("#abdomenPoints").html("胸或腹有触痛");
+                    }
+                    if(data.abdomenPoints == 3){
+                        $("#abdomenPoints").html("均无触痛");
+                    }
+                    if(data.motionPoints == 1){
+                        $("#motionPoints").html("无反应或体位固定");
+                    }
+                    if(data.motionPoints == 2){
+                        $("#motionPoints").html("只对疼痛刺激有反应");
+                    }
+                    if(data.motionPoints == 3){
+                        $("#motionPoints").html("正常（能按吩咐动作）");
+                    }
+                    if(data.speechPoints == 1){
+                        $("#speechPoints").html("发音听不懂或不能发音");
+                    }
+                    if(data.speechPoints == 2){
+                        $("#speechPoints").html("言语错乱 语无伦次");
+                    }
+                    if(data.speechPoints == 3){
+                        $("#speechPoints").html(" 正常（对答切题）");
+                    }
                 }
             });  //end 加载病历附表
 
@@ -312,14 +357,8 @@
         <td>
             <span>循环</span>
         </td>
-        <td colspan="3">
-            <span>毛细血管充盈良好或收缩压≥90mmHg</span>
-        </td>
-        <td colspan="3">
-            <span>毛细血管充盈迟缓或收缩压89~60mmHg</span>
-        </td>
-        <td colspan="3">
-            <span>无毛细血管充盈或收缩压≤59mmHg</span>
+        <td colspan="9">
+            <span id="cyclePoints"></span>
         </td>
     </tr>
     <tr align="left">
@@ -338,14 +377,9 @@
         <td>
             <span>呼吸</span>
         </td>
-        <td colspan="3">
-            <span>正常</span>
+        <td colspan="9">
+            <span id="breathPoints"></span>
         </td>
-        <td colspan="3">
-            <span>不正常（费力、浅或呼吸＞35次/min）</span>
-        </td>
-        <td colspan="3">
-            <span>无自主呼吸</span>
         </td>
     </tr>
     <tr align="left">
@@ -360,14 +394,8 @@
         <td>
             <span>胸腹</span>
         </td>
-        <td colspan="3">
-            <span>均无触痛</span>
-        </td>
-        <td colspan="3">
-            <span>胸或腹有触痛</span>
-        </td>
-        <td colspan="3">
-            <span>连枷胸、板状腹、血腹</span>
+        <td colspan="9">
+            <span id="abdomenPoints"></span>
         </td>
     </tr>
     <tr align="left">
@@ -378,14 +406,8 @@
         <td>
             <span>运动</span>
         </td>
-        <td colspan="3">
-            <span>正常（能按吩咐动作）</span>
-        </td>
-        <td colspan="3">
-            <span>只对疼痛刺激有反应</span>
-        </td>
-        <td colspan="3">
-            <span>无反应或体位固定</span>
+        <td colspan="9">
+            <span id="motionPoints"></span>
         </td>
     </tr>
     <tr align="left">
@@ -396,14 +418,8 @@
         <td>
             <span>言语</span>
         </td>
-        <td colspan="3">
-            <span>正常（对答切题）</span>
-        </td>
-        <td colspan="3">
-            <span>言语错乱 语无伦次</span>
-        </td>
-        <td colspan="3">
-            <span>发音听不懂或不能发音</span>
+        <td colspan="9">
+            <span id="speechPoints"></span>
         </td>
     </tr>
     <tr align="left">
