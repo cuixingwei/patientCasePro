@@ -426,6 +426,7 @@ var savePatientCase = function () {
         });
     } else if (addPatientCaseFlag != 1 && addPatientCaseFlag != -1) {
         url = '/cases/editPatientCase?taskCode= ' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
+        console.log("修改病历!");
         $.post(url, cxw.serializeObject($('form')), function (data) {
             if (data.flag == 1) {
                 patientsGrid.datagrid('load', {}); //加载病历
