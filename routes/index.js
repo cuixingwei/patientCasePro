@@ -12,8 +12,10 @@ var log = require('log4js').getLogger("index");
 /* GET home page. */
 
 router.get('/', function (req, res, next) {
-    if (!string.isBlankOrEmpty(req.session.username)) {
-        res.render('main', {title: '主页面', username: req.session.username, center: req.session.center});
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        res.render('main', {title: '主页面', username: userInfo.username, center: userInfo.center});
     } else {
         res.render('login', {});
     }
@@ -44,8 +46,10 @@ router.get('/printNurseRecord', function (req, res, next) {
 
 /*登录成功后跳转到主页面*/
 router.get('/main', function (req, res, next) {
-    if (!string.isBlankOrEmpty(req.session.username)) {
-        res.render('main', {title: '主页面', username: req.session.username, center: req.session.center});
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        res.render('main', {title: '主页面', username: userInfo.username, center: userInfo.center});
     } else {
         res.render('login', {});
     }
@@ -53,19 +57,24 @@ router.get('/main', function (req, res, next) {
 
 /*退出*/
 router.get('/logOut', function (req, res, next) {
-    req.session.destroy(function (err) {
-        if (err) {
-            log.error(err.message);
-        } else {
-            res.render('login', {title: 'Express'});
-        }
-    })
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        //清除cookie
+        res.clearCookie('userInfo');
+        res.render('login', {title: 'Express'});
+    }else {
+        res.render('login', {title: 'Express'});
+    }
 });
 
 /*改密*/
 router.post('/changePwd', function (req, res, next) {
-    var userId = req.session.userId;
+    var userId ;
     var password = req.body.dataPwd;
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        userId = userInfo.userId;
+    }
     var sqlData = {
         statement: "update AuSp120.tb_MrUser set 密码=@pwd where 工号=@userId",
         params: [{"name": "userId", "value": userId}, {"name": "pwd", "value": password}]

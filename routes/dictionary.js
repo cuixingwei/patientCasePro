@@ -413,7 +413,12 @@ router.get('/getDDiseaseReason', function (req, res, next) {
 /*返回分站人员*/
 router.get('/getPerson', function (req, res, next) {
     var personType = req.query.personType; //1医生，2护士，3司机
-    var station_id = req.session.stationCode;
+    var station_id ;
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        station_id = userInfo.stationCode;
+    }
     if (string.isBlankOrEmpty(station_id)) {
         station_id = config.stationCode;
     }
@@ -467,8 +472,14 @@ router.get('/getStations', function (req, res, next) {
 
 /*返回车辆列表*/
 router.get('/getCars', function (req, res, next) {
-    var station_id = req.session.stationCode;
-    if (string.isBlankOrEmpty(station_id) || string.isEquals('1',req.session.personType)) {
+    var station_id,personType ;
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        station_id = userInfo.stationCode;
+        personType = userInfo.personType;
+    }
+    if (string.isBlankOrEmpty(station_id) || string.isEquals('1',personType)) {
         station_id = config.stationCode;
     }
     var sqlData;

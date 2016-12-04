@@ -20,9 +20,17 @@ exports.getHistoryEvent = function (req, res) {
     var page = req.body.page;
     var rows = req.body.rows;
 
-    var station_id = req.session.stationCode;
+    var station_id;
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        station_id = userInfo.stationCode;
+    }else {
+        res.json([]);
+        return;
+    }
     console.log('分站编码:' + station_id);
-    if (string.isBlankOrEmpty(station_id) || string.isEquals('1', req.session.personType)) {
+    if (string.isBlankOrEmpty(station_id) || string.isEquals('1', userInfo.personType)) {
         station_id = config.stationCode;
     }
 
@@ -436,44 +444,52 @@ exports.getPatientsByID = function (req, res) {
 
 /*添加收费项*/
 exports.addCharge = function (req, res) {
-    var sql = 'insert into AuSp120.tb_ChargeRecord (任务编码,任务序号,车辆编码,病历序号,车辆标识,收费时间,收费项编码,收费金额,收款员编码) values (@taskCode,@taskOrder,@carCode,' +
-        '@patientCaseOrder,@carIdentification,@chargeTime,@chargeCode,@chargePrice,@userId)';
-    var params = [{"name": "taskCode", "value": req.body.taskCode, "type": "char"}, {
-        "name": "taskOrder",
-        "value": req.body.taskOrder,
-        "type": "int"
-    }, {"name": "patientCaseOrder", "value": req.body.patientCaseOrder, "type": "int"}, {
-        "name": "carCode",
-        "value": req.body.carCode,
-        "type": "varchar"
-    }, {
-        "name": "carIdentification",
-        "value": req.body.carIdentification,
-        "type": "varchar"
-    }, {"name": "chargeTime", "value": util.getCurrentTime(), "type": "varchar"}, {
-        "name": "chargeCode",
-        "value": req.body.chargeCode,
-        "type": "int"
-    }, {"name": "chargePrice", "value": req.body.chargePrice, "type": "varchar"}, {
-        "name": "userId",
-        "value": req.session.userId,
-        "type": "varchar"
-    }];
-    var sqlData = {
-        statement: sql,
-        params: params
-    };
-    db.change(sqlData, function (err, results) {
-        if (results > 0) {
-            res.json({
-                flag: 1 //成功
-            });
-        } else {
-            res.json({
-                flag: 2 //失败
-            });
-        }
-    });
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        var sql = 'insert into AuSp120.tb_ChargeRecord (任务编码,任务序号,车辆编码,病历序号,车辆标识,收费时间,收费项编码,收费金额,收款员编码) values (@taskCode,@taskOrder,@carCode,' +
+            '@patientCaseOrder,@carIdentification,@chargeTime,@chargeCode,@chargePrice,@userId)';
+        var params = [{"name": "taskCode", "value": req.body.taskCode, "type": "char"}, {
+            "name": "taskOrder",
+            "value": req.body.taskOrder,
+            "type": "int"
+        }, {"name": "patientCaseOrder", "value": req.body.patientCaseOrder, "type": "int"}, {
+            "name": "carCode",
+            "value": req.body.carCode,
+            "type": "varchar"
+        }, {
+            "name": "carIdentification",
+            "value": req.body.carIdentification,
+            "type": "varchar"
+        }, {"name": "chargeTime", "value": util.getCurrentTime(), "type": "varchar"}, {
+            "name": "chargeCode",
+            "value": req.body.chargeCode,
+            "type": "int"
+        }, {"name": "chargePrice", "value": req.body.chargePrice, "type": "varchar"}, {
+            "name": "userId",
+            "value": userInfo.userId,
+            "type": "varchar"
+        }];
+        var sqlData = {
+            statement: sql,
+            params: params
+        };
+        db.change(sqlData, function (err, results) {
+            if (results > 0) {
+                res.json({
+                    flag: 1 //成功
+                });
+            } else {
+                res.json({
+                    flag: 2 //失败
+                });
+            }
+        });
+    }else {
+        res.json({
+            flag: 2 //失败
+        });
+    }
 };
 
 /*删除收费项*/
@@ -510,75 +526,83 @@ exports.addNurseRecord = function (req, res, flag) {
     var nurseTime = nurseDateTime.split(' ')[1];
     var sql;
     var params;
-    if (flag == 1) {
-        sql = 'insert into AuSp120.tb_PatientNursing (任务编码,任务序号,车辆标识,病历序号,日期,时间,神志,左大小,左反应,右大小,右反应,心率,脉搏,呼吸,血压,血氧饱和度,护理措施,护士签名,记录时刻,记录者编码,车辆编码) values' +
-            ' (@taskCode,@taskOrder,@carIdentification,@patientCaseOrder,@nurseDate,@nurseTime,@sense,@leftSize,@leftReaction,@rightSize,@rightReaction,@heartRate,@pulse,@breath,' +
-            '@bloodPressure,@sao2,@nurseMeasure,@nurseSign,@recordTime,@userId,@carCode)';
-    } else {
-        sql = 'update AuSp120.tb_PatientNursing set 日期=@nurseDate,时间=@nurseTime,神志=@sense,左大小=@leftSize,右大小=@rightSize,左反应=@leftReaction,右反应=@rightReaction,' +
-            '心率=@heartRate,脉搏=@pulse,呼吸=@breath,血压=@bloodPressure,血氧饱和度=@sao2,护理措施=@nurseMeasure,护士签名=@nurseSign,记录时刻=@recordTime,记录者编码=@userId where ID=@nurseRecordID';
-    }
-
-    params = [{"name": "taskCode", "value": req.query.taskCode, "type": "char"}, {
-        "name": "taskOrder",
-        "value": req.query.taskOrder,
-        "type": "int"
-    }, {"name": "patientCaseOrder", "value": req.query.patientCaseOrder, "type": "int"}, {
-        "name": "carCode",
-        "value": req.query.carCode,
-        "type": "varchar"
-    }, {"name": "carIdentification", "value": req.query.carIdentification, "type": "varchar"}, {
-        "name": "recordTime",
-        "value": util.getCurrentTime(),
-        "type": "varchar"
-    }, {"name": "sense", "value": req.body.sense, "type": "varchar"}, {
-        "name": "leftSize",
-        "value": req.body.leftSize,
-        "type": "varchar"
-    }, {"name": "userId", "value": req.session.userId, "type": "varchar"}, {
-        "name": "leftReaction",
-        "value": req.body.leftReaction,
-        "type": "varchar"
-    }, {"name": "rightSize", "value": req.body.rightSize, "type": "varchar"}, {
-        "name": "rightReaction",
-        "value": req.body.rightReaction,
-        "type": "varchar"
-    }, {"name": "heartRate", "value": req.body.heartRate, "type": "varchar"}, {
-        "name": "pulse",
-        "value": req.body.pulse,
-        "type": "varchar"
-    }, {"name": "breath", "value": req.body.breath, "type": "varchar"}, {
-        "name": "bloodPressure",
-        "value": req.body.bloodPressure,
-        "type": "varchar"
-    }, {"name": "sao2", "value": req.body.sao2, "type": "varchar"}, {
-        "name": "nurseMeasure",
-        "value": req.body.nurseMeasure,
-        "type": "varchar"
-    }, {"name": "nurseSign", "value": req.body.nurseSign, "type": "varchar"}, {
-        "name": "nurseDate",
-        "value": nurseDate,
-        "type": "varchar"
-    }, {"name": "nurseTime", "value": nurseTime, "type": "varchar"}, {
-        "name": "nurseRecordID",
-        "value": req.query.nurseRecordID,
-        "type": "int"
-    }];
-    var sqlData = {
-        statement: sql,
-        params: params
-    };
-    db.change(sqlData, function (err, results) {
-        if (results > 0) {
-            res.json({
-                flag: 1 //成功
-            });
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        if (flag == 1) {
+            sql = 'insert into AuSp120.tb_PatientNursing (任务编码,任务序号,车辆标识,病历序号,日期,时间,神志,左大小,左反应,右大小,右反应,心率,脉搏,呼吸,血压,血氧饱和度,护理措施,护士签名,记录时刻,记录者编码,车辆编码) values' +
+                ' (@taskCode,@taskOrder,@carIdentification,@patientCaseOrder,@nurseDate,@nurseTime,@sense,@leftSize,@leftReaction,@rightSize,@rightReaction,@heartRate,@pulse,@breath,' +
+                '@bloodPressure,@sao2,@nurseMeasure,@nurseSign,@recordTime,@userId,@carCode)';
         } else {
-            res.json({
-                flag: 2 //失败
-            });
+            sql = 'update AuSp120.tb_PatientNursing set 日期=@nurseDate,时间=@nurseTime,神志=@sense,左大小=@leftSize,右大小=@rightSize,左反应=@leftReaction,右反应=@rightReaction,' +
+                '心率=@heartRate,脉搏=@pulse,呼吸=@breath,血压=@bloodPressure,血氧饱和度=@sao2,护理措施=@nurseMeasure,护士签名=@nurseSign,记录时刻=@recordTime,记录者编码=@userId where ID=@nurseRecordID';
         }
-    });
+
+        params = [{"name": "taskCode", "value": req.query.taskCode, "type": "char"}, {
+            "name": "taskOrder",
+            "value": req.query.taskOrder,
+            "type": "int"
+        }, {"name": "patientCaseOrder", "value": req.query.patientCaseOrder, "type": "int"}, {
+            "name": "carCode",
+            "value": req.query.carCode,
+            "type": "varchar"
+        }, {"name": "carIdentification", "value": req.query.carIdentification, "type": "varchar"}, {
+            "name": "recordTime",
+            "value": util.getCurrentTime(),
+            "type": "varchar"
+        }, {"name": "sense", "value": req.body.sense, "type": "varchar"}, {
+            "name": "leftSize",
+            "value": req.body.leftSize,
+            "type": "varchar"
+        }, {"name": "userId", "value": userInfo.userId, "type": "varchar"}, {
+            "name": "leftReaction",
+            "value": req.body.leftReaction,
+            "type": "varchar"
+        }, {"name": "rightSize", "value": req.body.rightSize, "type": "varchar"}, {
+            "name": "rightReaction",
+            "value": req.body.rightReaction,
+            "type": "varchar"
+        }, {"name": "heartRate", "value": req.body.heartRate, "type": "varchar"}, {
+            "name": "pulse",
+            "value": req.body.pulse,
+            "type": "varchar"
+        }, {"name": "breath", "value": req.body.breath, "type": "varchar"}, {
+            "name": "bloodPressure",
+            "value": req.body.bloodPressure,
+            "type": "varchar"
+        }, {"name": "sao2", "value": req.body.sao2, "type": "varchar"}, {
+            "name": "nurseMeasure",
+            "value": req.body.nurseMeasure,
+            "type": "varchar"
+        }, {"name": "nurseSign", "value": req.body.nurseSign, "type": "varchar"}, {
+            "name": "nurseDate",
+            "value": nurseDate,
+            "type": "varchar"
+        }, {"name": "nurseTime", "value": nurseTime, "type": "varchar"}, {
+            "name": "nurseRecordID",
+            "value": req.query.nurseRecordID,
+            "type": "int"
+        }];
+        var sqlData = {
+            statement: sql,
+            params: params
+        };
+        db.change(sqlData, function (err, results) {
+            if (results > 0) {
+                res.json({
+                    flag: 1 //成功
+                });
+            } else {
+                res.json({
+                    flag: 2 //失败
+                });
+            }
+        });
+    }else {
+        res.json({
+            flag: 2 //失败
+        });
+    }
 };
 
 /*删除护理记录项*/
@@ -616,372 +640,382 @@ exports.addPatientCase = function (req, res, flag) {
     var abdomenPoints = req.body.abdomenPoints;
     var motionPoints = req.body.motionPoints;
     var speechPoints = req.body.speechPoints;
-    var CRAMS = 0;
-    if (string.isBlankOrEmpty(cyclePoints)) {
-        cyclePoints = 0;
-    } else {
-        cyclePoints = parseInt(cyclePoints.trim());
-        CRAMS = CRAMS + cyclePoints - 1;
-    }
-    if (string.isBlankOrEmpty(breathPoints)) {
-        breathPoints = 0;
-    } else {
-        breathPoints = parseInt(breathPoints.trim());
-        CRAMS = CRAMS + breathPoints - 1;
-    }
-    if (string.isBlankOrEmpty(abdomenPoints)) {
-        abdomenPoints = 0;
-    } else {
-        abdomenPoints = parseInt(abdomenPoints.trim());
-        CRAMS = CRAMS + abdomenPoints - 1;
-    }
-    if (string.isBlankOrEmpty(motionPoints)) {
-        motionPoints = 0;
-    } else {
-        motionPoints = parseInt(motionPoints.trim());
-        CRAMS = CRAMS + motionPoints - 1;
-    }
-    if (string.isBlankOrEmpty(speechPoints)) {
-        speechPoints = 0;
-    } else {
-        speechPoints = parseInt(speechPoints.trim());
-        CRAMS = CRAMS + speechPoints - 1;
-    }
-    console.log('CRAMS:' + CRAMS);
-    var patientCaseNumbers = parseInt(req.query.patientCaseNumber) + 1;
-    var patientCaseID = req.query.patientCaseID.trim(); //主表ID
-    var threeNO = req.body.threeNO; //三无
-    var carCode = req.query.carCode.trim(); //防止车辆编码过长，操作失败
-    var stationCode; //分站编码
-    if (!string.isBlankOrEmpty(req.query.stationCode)) {
-        stationCode = req.query.stationCode.trim();
-    }
-    var stationAlterFlag = '是';//分站修改标志
-    var centerAlterFlag = '否';//中心修改标志
-    var formComplete = '是'; //表单完成
-
-    var doctor = req.body.doctor;
-    var nurse = req.body.nurse;
-    var driver = req.body.driver;
-    if (!string.isBlankOrEmpty(doctor)) {
-        if (string.isEquals(doctor.trim().substring(0, 1), ';')) {
-            doctor = doctor.trim().substring(1);
+    if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+        var userInfo = req.cookies.userInfo;
+        userInfo = eval("(" + userInfo + ")");
+        var CRAMS = 0;
+        if (string.isBlankOrEmpty(cyclePoints)) {
+            cyclePoints = 0;
+        } else {
+            cyclePoints = parseInt(cyclePoints.trim());
+            CRAMS = CRAMS + cyclePoints - 1;
         }
-    }
-    if (!string.isBlankOrEmpty(nurse)) {
-        if (string.isEquals(nurse.trim().substring(0, 1), ';')) {
-            nurse = nurse.trim().substring(1);
+        if (string.isBlankOrEmpty(breathPoints)) {
+            breathPoints = 0;
+        } else {
+            breathPoints = parseInt(breathPoints.trim());
+            CRAMS = CRAMS + breathPoints - 1;
         }
-    }
-    if (!string.isBlankOrEmpty(driver)) {
-        if (string.isEquals(driver.trim().substring(0, 1), ';')) {
-            driver = driver.trim().substring(1);
+        if (string.isBlankOrEmpty(abdomenPoints)) {
+            abdomenPoints = 0;
+        } else {
+            abdomenPoints = parseInt(abdomenPoints.trim());
+            CRAMS = CRAMS + abdomenPoints - 1;
         }
-    }
+        if (string.isBlankOrEmpty(motionPoints)) {
+            motionPoints = 0;
+        } else {
+            motionPoints = parseInt(motionPoints.trim());
+            CRAMS = CRAMS + motionPoints - 1;
+        }
+        if (string.isBlankOrEmpty(speechPoints)) {
+            speechPoints = 0;
+        } else {
+            speechPoints = parseInt(speechPoints.trim());
+            CRAMS = CRAMS + speechPoints - 1;
+        }
+        console.log('CRAMS:' + CRAMS);
+        var patientCaseNumbers = parseInt(req.query.patientCaseNumber) + 1;
+        var patientCaseID = req.query.patientCaseID.trim(); //主表ID
+        var threeNO = req.body.threeNO; //三无
+        var carCode = req.query.carCode.trim(); //防止车辆编码过长，操作失败
+        var stationCode; //分站编码
+        if (!string.isBlankOrEmpty(req.query.stationCode)) {
+            stationCode = req.query.stationCode.trim();
+        }
+        var stationAlterFlag = '是';//分站修改标志
+        var centerAlterFlag = '否';//中心修改标志
+        var formComplete = '是'; //表单完成
 
-    if (string.isBlankOrEmpty(threeNO)) { //三无标志
-        threeNO = 0;
-    } else {
-        threeNO = 1;
-    }
-    var taskCode = req.query.taskCode.trim();
-    var taskOrder = req.query.taskOrder.trim();
-    var patientCaseOrder = req.query.patientCaseOrder.trim();
-    var sql;
-    var params;
-    params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
-        "name": "taskOrder",
-        "value": taskOrder,
-        "type": "int"
-    }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"}, {
-        "name": "carCode",
-        "value": carCode,
-        "type": "varchar"
-    }, {"name": "carIdentification", "value": req.query.carIdentification, "type": "varchar"}, {
-        "name": "alterTime",
-        "value": util.getCurrentTime(),
-        "type": "varchar"
-    }, {"name": "patientName", "value": req.body.patientName, "type": "varchar"}, {
-        "name": "sex",
-        "value": req.body.sex,
-        "type": "varchar"
-    }, {"name": "userId", "value": req.session.userId, "type": "varchar"}, {
-        "name": "age",
-        "value": req.body.age,
-        "type": "varchar"
-    }, {"name": "identityCode", "value": req.body.identityCode, "type": "tinyint"}, {
-        "name": "workCode",
-        "value": req.body.workCode,
-        "type": "tinyint"
-    }, {"name": "nationCode", "value": req.body.nationCode, "type": "varchar"}, {
-        "name": "waitAddr",
-        "value": req.body.waitAddr,
-        "type": "varchar"
-    }, {"name": "linkMan", "value": req.body.linkMan, "type": "varchar"}, {
-        "name": "linkPhone",
-        "value": req.body.linkPhone,
-        "type": "varchar"
-    }, {"name": "chiefComplaint", "value": req.body.chiefComplaint, "type": "varchar"}, {
-        "name": "doctorDiagnosis",
-        "value": req.body.doctorDiagnosis,
-        "type": "varchar"
-    }, {"name": "departmentCode", "value": req.body.departmentCode, "type": "varchar"}, {
-        "name": "patientReasonCode",
-        "value": req.body.patientReasonCode,
-        "type": "tinyint"
-    }, {"name": "presentIllness", "value": req.body.presentIllness, "type": "varchar"}, {
-        "name": "pastHistory",
-        "value": req.body.pastHistory,
-        "type": "varchar"
-    }, {"name": "allergy", "value": req.body.allergy, "type": "varchar"}, {
-        "name": "middleChange",
-        "value": req.body.middleChange,
-        "type": "varchar"
-    }, {"name": "treatResultCode", "value": req.body.treatResultCode, "type": "tinyint"}, {
-        "name": "toAddr",
-        "value": req.body.toAddr,
-        "type": "varchar"
-    }, {"name": "localAddr", "value": req.body.localAddr, "type": "varchar"}, {
-        "name": "deathCode",
-        "value": req.body.deathCode,
-        "type": "tinyint"
-    }, {"name": "patientCooperation", "value": req.body.patientCooperation, "type": "tinyint"}, {
-        "name": "remark",
-        "value": req.body.remark,
-        "type": "varchar"
-    }, {"name": "doctor", "value": doctor, "type": "varchar"}, {
-        "name": "nurse",
-        "value": nurse,
-        "type": "varchar"
-    }, {"name": "driver", "value": driver, "type": "varchar"}, {
-        "name": "stationCode",
-        "value": stationCode,
-        "type": "varchar"
-    }, {"name": "outcomeCode", "value": req.body.outcomeCode, "type": "tinyint"}, {
-        "name": "distance",
-        "value": req.body.distance,
-        "type": "varchar"
-    }, {"name": "threeNO", "value": threeNO, "type": "varchar"}, {
-        "name": "outAddr",
-        "value": req.body.outAddr,
-        "type": "varchar"
-    }, {"name": "doctorSign", "value": req.body.doctorSign, "type": "varchar"}, {
-        "name": "patientCaseID",
-        "value": patientCaseID,
-        "type": "int"
-    }, {"name": "BPH", "value": req.body.BPH, "type": "varchar"}, {
-        "name": "BPL",
-        "value": req.body.BPL,
-        "type": "varchar"
-    }, {"name": "P", "value": req.body.P, "type": "varchar"}, {
-        "name": "R",
-        "value": req.body.R,
-        "type": "varchar"
-    }, {"name": "leftEye", "value": req.body.leftEye, "type": "varchar"}, {
-        "name": "rightEye",
-        "value": req.body.rightEye,
-        "type": "varchar"
-    }, {"name": "general", "value": req.body.general, "type": "varchar"}, {
-        "name": "pathologicalReflex",
-        "value": req.body.pathologicalReflex,
-        "type": "varchar"
-    }, {"name": "senseSchedule", "value": req.body.senseSchedule, "type": "varchar"}, {
-        "name": "kczg",
-        "value": req.body.kczg,
-        "type": "varchar"
-    }, {"name": "leftLight", "value": req.body.leftLight, "type": "varchar"}, {
-        "name": "rightLight",
-        "value": req.body.rightLight,
-        "type": "varchar"
-    }, {"name": "heart", "value": req.body.heart, "type": "varchar"}, {
-        "name": "lung",
-        "value": req.body.lung,
-        "type": "varchar"
-    }, {"name": "head", "value": req.body.head, "type": "varchar"}, {
-        "name": "breast",
-        "value": req.body.breast,
-        "type": "varchar"
-    }, {"name": "abdomen", "value": req.body.abdomen, "type": "varchar"}, {
-        "name": "spine",
-        "value": req.body.spine,
-        "type": "varchar"
-    }, {"name": "others", "value": req.body.others, "type": "varchar"}, {
-        "name": "cureMeasure",
-        "value": req.body.cureMeasures,
-        "type": "varchar"
-    }, {"name": "cyclePoints", "value": cyclePoints, "type": "int"}, {
-        "name": "speechPoints",
-        "value": speechPoints,
-        "type": "int"
-    }, {"name": "abdomenPoints", "value": abdomenPoints, "type": "int"}, {
-        "name": "motionPoints",
-        "value": motionPoints,
-        "type": "int"
-    }, {"name": "CRAMS", "value": CRAMS, "type": "int"}, {
-        "name": "T",
-        "value": req.body.T,
-        "type": "varchar"
-    }, {"name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "varchar"}, {
-        "name": "stationAlterFlag",
-        "value": stationAlterFlag,
-        "type": "varchar"
-    }, {"name": "centerAlterFlag", "value": centerAlterFlag, "type": "varchar"}, {
-        "name": "formComplete",
-        "value": formComplete,
-        "type": "varchar"
-    }, {"name": "limb", "value": req.body.limb, "type": "varchar"}, {
-        "name": "breathPoints",
-        "value": breathPoints,
-        "type": "int"
-    }, {"name": "classCode", "value": req.body.classCode, "type": "tinyint"}, {
-        "name": "illnessCode",
-        "value": req.body.illnessCode,
-        "type": "tinyint"
-    }];
-
-    if (flag == 1) {
-        //插入病历主表
-        sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,身份编码,职业编码,民族,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
-            '分类统计编码, 病情编码, 现病史, 既往病史, 过敏史, 途中变化记录, 救治结果编码, 送往地点, 现场地点, 死亡证明编码, 病家合作编码, 分站修改标志, 分站调度员编码,中心修改标志, ' +
-            '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码, 车辆编码, 任务序号, 里程, 三无标志, 出诊地址, 医生签名,备注 )  values(@taskCode,@patientCaseNumbers,' +
-            '@patientName,@sex,@age,@identityCode,@workCode,@nationCode,@waitAddr,@linkMan,@linkPhone,@chiefComplaint,@doctorDiagnosis,@departmentCode,@patientReasonCode,' +
-            '@classCode,@illnessCode,@presentIllness,@pastHistory,@allergy,@middleChange,@treatResultCode,@toAddr,@localAddr,@deathCode,@patientCooperation,' +
-            '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@alterTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@carCode,@taskOrder,@distance,' +
-            '@threeNO,@outAddr,@doctorSign,@remark)';
-        sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //插入病历附表
-        console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID);
-        sql = 'insert into AuSp120.tb_PatientSchedule (任务编码,病例序号,BPH,BPL,P,R,瞳孔左,瞳孔右,一般情况,病理反射,神志, 口唇紫绀,左对光,右对光,心脏,肺部,腹部,' +
-            '脊柱,四肢,其它 ,治疗措施,分站编码,车辆标识,循环分值,呼吸分值,胸腹分值,运动分值,言语分值,CRAMS,T,车辆编码,任务序号) values (@taskCode,@patientCaseNumbers,' +
-            '@BPH,@BPL,@P,@R,@leftEye,@rightEye,@general,@pathologicalReflex,@senseSchedule,@kczg,@leftLight,@rightLight,@heart,@lung,@abdomen,@spine,@limb,@others,' +
-            '@cureMeasure,@stationCode,@carIdentification,@cyclePoints,@breathPoints,@abdomenPoints,@motionPoints,@speechPoints,@CRAMS,@T,@carCode,@taskOrder)';
-        var sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //插入救治措施
-        var cureMeasure = req.body.cureMeasure;
-        if (!string.isBlankOrEmpty(cureMeasure)) {
-            var length = cureMeasure.split(',').length;
-            for (i = 0; i < length; i++) {
-                console.log('cureCode:' + cureMeasure.split(',')[i]);
-                sql = 'insert into AuSp120.tb_CureMeasure (任务编码,病例序号,救治措施编码,车辆标识,车辆编码,任务序号)  ' +
-                    'values(@taskCode,@patientCaseNumbers,@cureCode,@carIdentification,@carCode,@taskOrder)';
-                params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
-                    "name": "taskOrder",
-                    "value": taskOrder,
-                    "type": "int"
-                }, {"name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "tinyint"}, {
-                    "name": "carCode",
-                    "value": carCode,
-                    "type": "varchar"
-                }, {
-                    "name": "carIdentification",
-                    "value": req.query.carIdentification,
-                    "type": "varchar"
-                }, {
-                    "name": "cureCode",
-                    "value": cureMeasure.split(',')[i].trim(),
-                    "type": "tinyint"
-                }];
-                sqlData = {
-                    statement: sql,
-                    params: params
-                };
-                sqlBatch.push(sqlData);
+        var doctor = req.body.doctor;
+        var nurse = req.body.nurse;
+        var driver = req.body.driver;
+        if (!string.isBlankOrEmpty(doctor)) {
+            if (string.isEquals(doctor.trim().substring(0, 1), ';')) {
+                doctor = doctor.trim().substring(1);
             }
         }
-        db.changeSeries(sqlBatch, function (err, result) {
-            console.log('执行结果:' + result);
-            if (result.length >= 0) {
-                res.json({
-                    flag: 1 //成功
-                });
-            } else {
-                res.json({
-                    flag: 2 //失败
-                });
+        if (!string.isBlankOrEmpty(nurse)) {
+            if (string.isEquals(nurse.trim().substring(0, 1), ';')) {
+                nurse = nurse.trim().substring(1);
             }
-        });
-    }
-    else {
-        //修改病历主表
-        sql = 'update AuSp120.tb_PatientCase set 姓名=@patientName,性别=@sex,年龄=@age,身份编码=@identityCode,职业编码=@workCode,民族=@nationCode,家庭住址=@waitAddr,' +
-            '联系人=@linkMan,联系电话=@linkPhone, 病人主诉=@chiefComplaint,医生诊断=@doctorDiagnosis,疾病科别编码=@departmentCode,分类统计编码=@classCode,病因编码=@patientReasonCode,现病史=@presentIllness,' +
-            '既往病史=@pastHistory,病情编码=@illnessCode,过敏史=@allergy,途中变化记录=@middleChange,救治结果编码=@treatResultCode,送往地点=@toAddr,现场地点=@localAddr,死亡证明编码=@deathCode,' +
-            '病家合作编码=@patientCooperation,备注=@remark,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver, ' +
-            '转归编码=@outcomeCode,最后修改时刻=@alterTime,最后修改者编码=@userId,里程=@distance,三无标志=@threeNO,出诊地址=@outAddr,医生签名=@doctorSign where ID=@patientCaseID';
-        sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //修改病历附表
-        console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID);
-        sql = 'update AuSp120.tb_PatientSchedule set BPH=@BPH,BPL=@BPL,P=@P,R=@R,瞳孔左=@leftEye,瞳孔右=@rightEye,一般情况=@general,病理反射=@pathologicalReflex,神志=@senseSchedule,' +
-            '口唇紫绀=@kczg,左对光=@leftLight,右对光=@rightLight,心脏=@heart,肺部=@lung,头颈=@head,胸部=@breast,腹部=@abdomen,脊柱=@spine,四肢=@limb,其它=@others,' +
-            '治疗措施=@cureMeasure,分站编码=@stationCode,车辆标识=@carIdentification,循环分值=@cyclePoints, 呼吸分值=@breathPoints,胸腹分值=@abdomenPoints,' +
-            '运动分值=@motionPoints,言语分值=@speechPoints,CRAMS=@CRAMS,T=@T,车辆编码=@carCode where 任务编码=@taskCode and 任务序号=@taskOrder and 病例序号=@patientCaseOrder';
-        sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //删除救治措施
-        sql = 'delete from AuSp120.tb_CureMeasure where 任务序号=@taskOrder and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
-        sqlData = {
-            statement: sql,
-            params: params
-        };
-        sqlBatch.push(sqlData);
-        //插入救治措施
-        cureMeasure = req.body.cureMeasure;
-        if (!string.isBlankOrEmpty(cureMeasure)) {
-            length = cureMeasure.split(',').length;
-            for (var i = 0; i < length; i++) {
-                console.log('cureCode:' + cureMeasure.split(',')[i]);
-                sql = 'insert into AuSp120.tb_CureMeasure (任务编码,病例序号,救治措施编码,车辆标识,车辆编码,任务序号)  ' +
-                    'values(@taskCode,@patientCaseOrder,@cureCode,@carIdentification,@carCode,@taskOrder)';
-                params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
-                    "name": "taskOrder",
-                    "value": taskOrder,
-                    "type": "int"
-                }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"}, {
-                    "name": "carCode",
-                    "value": carCode,
-                    "type": "varchar"
-                }, {
-                    "name": "carIdentification",
-                    "value": req.query.carIdentification,
-                    "type": "varchar"
-                }, {
-                    "name": "cureCode",
-                    "value": cureMeasure.split(',')[i].trim(),
-                    "type": "tinyint"
-                }];
-                sqlData = {
-                    statement: sql,
-                    params: params
-                };
-                sqlBatch.push(sqlData);
-            }
-
         }
-        db.changeSeries(sqlBatch, function (err, result) {
-            if (result.length >= 0) {
-                res.json({
-                    flag: 1 //成功
-                });
-            } else {
-                res.json({
-                    flag: 2 //失败
-                });
+        if (!string.isBlankOrEmpty(driver)) {
+            if (string.isEquals(driver.trim().substring(0, 1), ';')) {
+                driver = driver.trim().substring(1);
             }
+        }
+
+        if (string.isBlankOrEmpty(threeNO)) { //三无标志
+            threeNO = 0;
+        } else {
+            threeNO = 1;
+        }
+        var taskCode = req.query.taskCode.trim();
+        var taskOrder = req.query.taskOrder.trim();
+        var patientCaseOrder = req.query.patientCaseOrder.trim();
+        var sql;
+        var params;
+        params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
+            "name": "taskOrder",
+            "value": taskOrder,
+            "type": "int"
+        }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"}, {
+            "name": "carCode",
+            "value": carCode,
+            "type": "varchar"
+        }, {"name": "carIdentification", "value": req.query.carIdentification, "type": "varchar"}, {
+            "name": "alterTime",
+            "value": util.getCurrentTime(),
+            "type": "varchar"
+        }, {"name": "patientName", "value": req.body.patientName, "type": "varchar"}, {
+            "name": "sex",
+            "value": req.body.sex,
+            "type": "varchar"
+        }, {"name": "userId", "value": userInfo.userId, "type": "varchar"}, {
+            "name": "age",
+            "value": req.body.age,
+            "type": "varchar"
+        }, {"name": "identityCode", "value": req.body.identityCode, "type": "tinyint"}, {
+            "name": "workCode",
+            "value": req.body.workCode,
+            "type": "tinyint"
+        }, {"name": "nationCode", "value": req.body.nationCode, "type": "varchar"}, {
+            "name": "waitAddr",
+            "value": req.body.waitAddr,
+            "type": "varchar"
+        }, {"name": "linkMan", "value": req.body.linkMan, "type": "varchar"}, {
+            "name": "linkPhone",
+            "value": req.body.linkPhone,
+            "type": "varchar"
+        }, {"name": "chiefComplaint", "value": req.body.chiefComplaint, "type": "varchar"}, {
+            "name": "doctorDiagnosis",
+            "value": req.body.doctorDiagnosis,
+            "type": "varchar"
+        }, {"name": "departmentCode", "value": req.body.departmentCode, "type": "varchar"}, {
+            "name": "patientReasonCode",
+            "value": req.body.patientReasonCode,
+            "type": "tinyint"
+        }, {"name": "presentIllness", "value": req.body.presentIllness, "type": "varchar"}, {
+            "name": "pastHistory",
+            "value": req.body.pastHistory,
+            "type": "varchar"
+        }, {"name": "allergy", "value": req.body.allergy, "type": "varchar"}, {
+            "name": "middleChange",
+            "value": req.body.middleChange,
+            "type": "varchar"
+        }, {"name": "treatResultCode", "value": req.body.treatResultCode, "type": "tinyint"}, {
+            "name": "toAddr",
+            "value": req.body.toAddr,
+            "type": "varchar"
+        }, {"name": "localAddr", "value": req.body.localAddr, "type": "varchar"}, {
+            "name": "deathCode",
+            "value": req.body.deathCode,
+            "type": "tinyint"
+        }, {"name": "patientCooperation", "value": req.body.patientCooperation, "type": "tinyint"}, {
+            "name": "remark",
+            "value": req.body.remark,
+            "type": "varchar"
+        }, {"name": "doctor", "value": doctor, "type": "varchar"}, {
+            "name": "nurse",
+            "value": nurse,
+            "type": "varchar"
+        }, {"name": "driver", "value": driver, "type": "varchar"}, {
+            "name": "stationCode",
+            "value": stationCode,
+            "type": "varchar"
+        }, {"name": "outcomeCode", "value": req.body.outcomeCode, "type": "tinyint"}, {
+            "name": "distance",
+            "value": req.body.distance,
+            "type": "varchar"
+        }, {"name": "threeNO", "value": threeNO, "type": "varchar"}, {
+            "name": "outAddr",
+            "value": req.body.outAddr,
+            "type": "varchar"
+        }, {"name": "doctorSign", "value": req.body.doctorSign, "type": "varchar"}, {
+            "name": "patientCaseID",
+            "value": patientCaseID,
+            "type": "int"
+        }, {"name": "BPH", "value": req.body.BPH, "type": "varchar"}, {
+            "name": "BPL",
+            "value": req.body.BPL,
+            "type": "varchar"
+        }, {"name": "P", "value": req.body.P, "type": "varchar"}, {
+            "name": "R",
+            "value": req.body.R,
+            "type": "varchar"
+        }, {"name": "leftEye", "value": req.body.leftEye, "type": "varchar"}, {
+            "name": "rightEye",
+            "value": req.body.rightEye,
+            "type": "varchar"
+        }, {"name": "general", "value": req.body.general, "type": "varchar"}, {
+            "name": "pathologicalReflex",
+            "value": req.body.pathologicalReflex,
+            "type": "varchar"
+        }, {"name": "senseSchedule", "value": req.body.senseSchedule, "type": "varchar"}, {
+            "name": "kczg",
+            "value": req.body.kczg,
+            "type": "varchar"
+        }, {"name": "leftLight", "value": req.body.leftLight, "type": "varchar"}, {
+            "name": "rightLight",
+            "value": req.body.rightLight,
+            "type": "varchar"
+        }, {"name": "heart", "value": req.body.heart, "type": "varchar"}, {
+            "name": "lung",
+            "value": req.body.lung,
+            "type": "varchar"
+        }, {"name": "head", "value": req.body.head, "type": "varchar"}, {
+            "name": "breast",
+            "value": req.body.breast,
+            "type": "varchar"
+        }, {"name": "abdomen", "value": req.body.abdomen, "type": "varchar"}, {
+            "name": "spine",
+            "value": req.body.spine,
+            "type": "varchar"
+        }, {"name": "others", "value": req.body.others, "type": "varchar"}, {
+            "name": "cureMeasure",
+            "value": req.body.cureMeasures,
+            "type": "varchar"
+        }, {"name": "cyclePoints", "value": cyclePoints, "type": "int"}, {
+            "name": "speechPoints",
+            "value": speechPoints,
+            "type": "int"
+        }, {"name": "abdomenPoints", "value": abdomenPoints, "type": "int"}, {
+            "name": "motionPoints",
+            "value": motionPoints,
+            "type": "int"
+        }, {"name": "CRAMS", "value": CRAMS, "type": "int"}, {
+            "name": "T",
+            "value": req.body.T,
+            "type": "varchar"
+        }, {"name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "varchar"}, {
+            "name": "stationAlterFlag",
+            "value": stationAlterFlag,
+            "type": "varchar"
+        }, {"name": "centerAlterFlag", "value": centerAlterFlag, "type": "varchar"}, {
+            "name": "formComplete",
+            "value": formComplete,
+            "type": "varchar"
+        }, {"name": "limb", "value": req.body.limb, "type": "varchar"}, {
+            "name": "breathPoints",
+            "value": breathPoints,
+            "type": "int"
+        }, {"name": "classCode", "value": req.body.classCode, "type": "tinyint"}, {
+            "name": "illnessCode",
+            "value": req.body.illnessCode,
+            "type": "tinyint"
+        }];
+
+        if (flag == 1) {
+            //插入病历主表
+            sql = 'insert into AuSp120.tb_PatientCase (任务编码,序号,姓名,性别,年龄,身份编码,职业编码,民族,家庭住址,联系人,联系电话,病人主诉,医生诊断,疾病科别编码, 病因编码,' +
+                '分类统计编码, 病情编码, 现病史, 既往病史, 过敏史, 途中变化记录, 救治结果编码, 送往地点, 现场地点, 死亡证明编码, 病家合作编码, 分站修改标志, 分站调度员编码,中心修改标志, ' +
+                '表单完成, 记录时刻, 随车医生, 随车护士, 司机, 分站编码, 车辆标识, 转归编码, 车辆编码, 任务序号, 里程, 三无标志, 出诊地址, 医生签名,备注 )  values(@taskCode,@patientCaseNumbers,' +
+                '@patientName,@sex,@age,@identityCode,@workCode,@nationCode,@waitAddr,@linkMan,@linkPhone,@chiefComplaint,@doctorDiagnosis,@departmentCode,@patientReasonCode,' +
+                '@classCode,@illnessCode,@presentIllness,@pastHistory,@allergy,@middleChange,@treatResultCode,@toAddr,@localAddr,@deathCode,@patientCooperation,' +
+                '@stationAlterFlag,@userId,@centerAlterFlag,@formComplete,@alterTime,@doctor,@nurse,@driver,@stationCode,@carIdentification,@outcomeCode,@carCode,@taskOrder,@distance,' +
+                '@threeNO,@outAddr,@doctorSign,@remark)';
+            sqlData = {
+                statement: sql,
+                params: params
+            };
+            sqlBatch.push(sqlData);
+            //插入病历附表
+            console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID);
+            sql = 'insert into AuSp120.tb_PatientSchedule (任务编码,病例序号,BPH,BPL,P,R,瞳孔左,瞳孔右,一般情况,病理反射,神志, 口唇紫绀,左对光,右对光,心脏,肺部,腹部,' +
+                '脊柱,四肢,其它 ,治疗措施,分站编码,车辆标识,循环分值,呼吸分值,胸腹分值,运动分值,言语分值,CRAMS,T,车辆编码,任务序号) values (@taskCode,@patientCaseNumbers,' +
+                '@BPH,@BPL,@P,@R,@leftEye,@rightEye,@general,@pathologicalReflex,@senseSchedule,@kczg,@leftLight,@rightLight,@heart,@lung,@abdomen,@spine,@limb,@others,' +
+                '@cureMeasure,@stationCode,@carIdentification,@cyclePoints,@breathPoints,@abdomenPoints,@motionPoints,@speechPoints,@CRAMS,@T,@carCode,@taskOrder)';
+            var sqlData = {
+                statement: sql,
+                params: params
+            };
+            sqlBatch.push(sqlData);
+            //插入救治措施
+            var cureMeasure = req.body.cureMeasure;
+            if (!string.isBlankOrEmpty(cureMeasure)) {
+                var length = cureMeasure.split(',').length;
+                for (i = 0; i < length; i++) {
+                    console.log('cureCode:' + cureMeasure.split(',')[i]);
+                    sql = 'insert into AuSp120.tb_CureMeasure (任务编码,病例序号,救治措施编码,车辆标识,车辆编码,任务序号)  ' +
+                        'values(@taskCode,@patientCaseNumbers,@cureCode,@carIdentification,@carCode,@taskOrder)';
+                    params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
+                        "name": "taskOrder",
+                        "value": taskOrder,
+                        "type": "int"
+                    }, {"name": "patientCaseNumbers", "value": patientCaseNumbers, "type": "tinyint"}, {
+                        "name": "carCode",
+                        "value": carCode,
+                        "type": "varchar"
+                    }, {
+                        "name": "carIdentification",
+                        "value": req.query.carIdentification,
+                        "type": "varchar"
+                    }, {
+                        "name": "cureCode",
+                        "value": cureMeasure.split(',')[i].trim(),
+                        "type": "tinyint"
+                    }];
+                    sqlData = {
+                        statement: sql,
+                        params: params
+                    };
+                    sqlBatch.push(sqlData);
+                }
+            }
+            db.changeSeries(sqlBatch, function (err, result) {
+                console.log('执行结果:' + result);
+                if (result.length >= 0) {
+                    log.info(userInfo.center+"的"+userInfo.username+"添加"+req.body.patientName+"病例成功");
+                    res.json({
+                        flag: 1 //成功
+                    });
+                } else {
+                    res.json({
+                        flag: 2 //失败
+                    });
+                }
+            });
+        }
+        else {
+            //修改病历主表
+            sql = 'update AuSp120.tb_PatientCase set 姓名=@patientName,性别=@sex,年龄=@age,身份编码=@identityCode,职业编码=@workCode,民族=@nationCode,家庭住址=@waitAddr,' +
+                '联系人=@linkMan,联系电话=@linkPhone, 病人主诉=@chiefComplaint,医生诊断=@doctorDiagnosis,疾病科别编码=@departmentCode,分类统计编码=@classCode,病因编码=@patientReasonCode,现病史=@presentIllness,' +
+                '既往病史=@pastHistory,病情编码=@illnessCode,过敏史=@allergy,途中变化记录=@middleChange,救治结果编码=@treatResultCode,送往地点=@toAddr,现场地点=@localAddr,死亡证明编码=@deathCode,' +
+                '病家合作编码=@patientCooperation,备注=@remark,分站修改标志=@stationAlterFlag,随车医生=@doctor,随车护士=@nurse,司机=@driver, ' +
+                '转归编码=@outcomeCode,最后修改时刻=@alterTime,最后修改者编码=@userId,里程=@distance,三无标志=@threeNO,出诊地址=@outAddr,医生签名=@doctorSign where ID=@patientCaseID';
+            sqlData = {
+                statement: sql,
+                params: params
+            };
+            sqlBatch.push(sqlData);
+            //修改病历附表
+            console.log('taskCode:' + req.query.taskCode + ';taskOrder:' + req.query.taskOrder + ';patientCaseOrder:' + req.query.patientCaseOrder + ';patientCaseID:' + req.query.patientCaseID);
+            sql = 'update AuSp120.tb_PatientSchedule set BPH=@BPH,BPL=@BPL,P=@P,R=@R,瞳孔左=@leftEye,瞳孔右=@rightEye,一般情况=@general,病理反射=@pathologicalReflex,神志=@senseSchedule,' +
+                '口唇紫绀=@kczg,左对光=@leftLight,右对光=@rightLight,心脏=@heart,肺部=@lung,头颈=@head,胸部=@breast,腹部=@abdomen,脊柱=@spine,四肢=@limb,其它=@others,' +
+                '治疗措施=@cureMeasure,分站编码=@stationCode,车辆标识=@carIdentification,循环分值=@cyclePoints, 呼吸分值=@breathPoints,胸腹分值=@abdomenPoints,' +
+                '运动分值=@motionPoints,言语分值=@speechPoints,CRAMS=@CRAMS,T=@T,车辆编码=@carCode where 任务编码=@taskCode and 任务序号=@taskOrder and 病例序号=@patientCaseOrder';
+            sqlData = {
+                statement: sql,
+                params: params
+            };
+            sqlBatch.push(sqlData);
+            //删除救治措施
+            sql = 'delete from AuSp120.tb_CureMeasure where 任务序号=@taskOrder and 任务编码=@taskCode and 病例序号=@patientCaseOrder';
+            sqlData = {
+                statement: sql,
+                params: params
+            };
+            sqlBatch.push(sqlData);
+            //插入救治措施
+            cureMeasure = req.body.cureMeasure;
+            if (!string.isBlankOrEmpty(cureMeasure)) {
+                length = cureMeasure.split(',').length;
+                for (var i = 0; i < length; i++) {
+                    console.log('cureCode:' + cureMeasure.split(',')[i]);
+                    sql = 'insert into AuSp120.tb_CureMeasure (任务编码,病例序号,救治措施编码,车辆标识,车辆编码,任务序号)  ' +
+                        'values(@taskCode,@patientCaseOrder,@cureCode,@carIdentification,@carCode,@taskOrder)';
+                    params = [{"name": "taskCode", "value": taskCode, "type": "char"}, {
+                        "name": "taskOrder",
+                        "value": taskOrder,
+                        "type": "int"
+                    }, {"name": "patientCaseOrder", "value": patientCaseOrder, "type": "tinyint"}, {
+                        "name": "carCode",
+                        "value": carCode,
+                        "type": "varchar"
+                    }, {
+                        "name": "carIdentification",
+                        "value": req.query.carIdentification,
+                        "type": "varchar"
+                    }, {
+                        "name": "cureCode",
+                        "value": cureMeasure.split(',')[i].trim(),
+                        "type": "tinyint"
+                    }];
+                    sqlData = {
+                        statement: sql,
+                        params: params
+                    };
+                    sqlBatch.push(sqlData);
+                }
+
+            }
+            db.changeSeries(sqlBatch, function (err, result) {
+                if (result.length >= 0) {
+                    log.info(userInfo.center+"的"+userInfo.username+"修改"+req.body.patientName+"病例成功");
+                    res.json({
+                        flag: 1 //成功
+                    });
+                } else {
+                    res.json({
+                        flag: 2 //失败
+                    });
+                }
+            });
+        }
+    }else {
+        res.json({
+            flag: 2 //失败
         });
     }
 

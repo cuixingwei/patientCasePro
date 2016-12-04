@@ -38,11 +38,14 @@ router.post('/login', function (req, res, next) {
                             msg: "noPermission"
                         });
                     } else {
-                        req.session.username = temp[1].value;  //登录成功后存session
-                        req.session.userId = temp[0].value; //存入用户ID
-                        req.session.center = temp[3].value; //中心名称
-                        req.session.stationCode = temp[4].value; //单位编码
-                        req.session.personType = temp[5].value; //人员类型
+                        var userInfo ={
+                            userId: temp[0].value,//存入用户ID
+                            name: temp[1].value, //登录成功后存cookie
+                            center: temp[3].value,//中心名称
+                            stationCode: temp[4].value,//单位编码
+                            personType: temp[5].value//人员类型
+                        };
+                        res.cookie('userInfo', JSON.stringify(userInfo));//登录信息存入cookie
                         res.json({
                             success: true,
                             msg: "success"

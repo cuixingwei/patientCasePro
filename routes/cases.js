@@ -44,9 +44,9 @@ router.post('/getTaskByID', function (req, res, next) {
 
 /*添加收费项*/
 router.post('/addCharge', function (req, res, next) {
-    if (string.isBlankOrEmpty(req.session.userId)) {
+    if (string.isBlankOrEmpty(req.cookies.userInfo)) {
         res.json({
-            flag: 0 //无session
+            flag: 0
         });
     } else {
         CaseDAO.addCharge(req, res);
@@ -59,9 +59,9 @@ router.post('/deleteCharge', function (req, res, next) {
 
 /*添加护理观察记录*/
 router.post('/addNurseRecord', function (req, res, next) {
-    if (string.isBlankOrEmpty(req.session.userId)) {
+    if (string.isBlankOrEmpty(req.cookies.userInfo)) {
         res.json({
-            flag: 0 //无session
+            flag: 0
         });
     } else {
         CaseDAO.addNurseRecord(req, res, 1);
@@ -69,9 +69,9 @@ router.post('/addNurseRecord', function (req, res, next) {
 });
 /*编辑护理观察记录*/
 router.post('/editNurseRecord', function (req, res, next) {
-    if (string.isBlankOrEmpty(req.session.userId)) {
+    if (string.isBlankOrEmpty(req.cookies.userInfo)) {
         res.json({
-            flag: 0 //无session
+            flag: 0
         });
     } else {
         CaseDAO.addNurseRecord(req, res, 2);
@@ -84,9 +84,10 @@ router.post('/deleteNurseRecord', function (req, res, next) {
 
 /*添加病历*/
 router.post('/addPatientCase', function (req, res, next) {
-    if (string.isBlankOrEmpty(req.session.userId)) {
+    console.log(req.cookies.userInfo);
+    if (string.isBlankOrEmpty(req.cookies.userInfo)) {
         res.json({
-            flag: 0 //无session
+            flag: 0
         });
     } else {
         CaseDAO.addPatientCase(req, res, 1);
@@ -94,9 +95,10 @@ router.post('/addPatientCase', function (req, res, next) {
 });
 /*编辑病历*/
 router.post('/editPatientCase', function (req, res, next) {
-    if (string.isBlankOrEmpty(req.session.userId)) {
+    console.log(req.cookies.userInfo);
+    if (string.isBlankOrEmpty(req.cookies.userInfo)) {
         res.json({
-            flag: 0 //无session
+            flag: 0
         });
     } else {
         CaseDAO.addPatientCase(req, res, 2);

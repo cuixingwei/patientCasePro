@@ -29,7 +29,7 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 // replace this with the log4js connect-logger
 // app.use(logger('dev'));
-app.use(log4js.connectLogger(log4js.getLogger("http"), { level: 'auto' }));
+app.use(log4js.connectLogger(log4js.getLogger("http"), { level: log4js.levels.ERROR, format: ':method :url' }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
