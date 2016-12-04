@@ -1,4 +1,4 @@
 /.idea/
-/logs/
+/log/
 /config/mysql.json
 /config/sql.json
