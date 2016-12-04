@@ -6,7 +6,7 @@ var excel = require("../../utils/excel");
 var string = require("../../utils/string");
 var util = require("../../utils/util");
 var config = require('../../config/config.json');
-var log = require('log4js').getLogger("CaseDAO");
+var log = require('log4js').getLogger("case");
 
 
 /*历史事件查询*/
@@ -926,7 +926,7 @@ exports.addPatientCase = function (req, res, flag) {
             db.changeSeries(sqlBatch, function (err, result) {
                 console.log('执行结果:' + result);
                 if (result.length >= 0) {
-                    log.info(userInfo.center+"的"+userInfo.username+"添加"+req.body.patientName+"病例成功");
+                    log.info(userInfo.center+"的"+userInfo.name+"添加"+req.body.patientName+"病例成功");
                     res.json({
                         flag: 1 //成功
                     });
@@ -1002,7 +1002,7 @@ exports.addPatientCase = function (req, res, flag) {
             }
             db.changeSeries(sqlBatch, function (err, result) {
                 if (result.length >= 0) {
-                    log.info(userInfo.center+"的"+userInfo.username+"修改"+req.body.patientName+"病例成功");
+                    log.info(userInfo.center+"的"+userInfo.name+"修改"+req.body.patientName+"病例成功");
                     res.json({
                         flag: 1 //成功
                     });
@@ -1069,8 +1069,12 @@ exports.deletePatientCase = function (req, res) {
     };
     sqlBatch.push(sqlData);
     db.changeSeries(sqlBatch, function (err, results) {
-        console.log(results);
         if (results.length > 0) {
+            if (!string.isBlankOrEmpty(req.cookies.userInfo)) {
+                var userInfo = req.cookies.userInfo;
+                userInfo = eval("(" + userInfo + ")");
+                log.info(userInfo.center+"的"+userInfo.name+"删除病例taskCode="+req.body.taskCode+";taskOrder:"+req.body.taskOrder+";patientCaseOrder:"+req.body.patientCaseOrder);
+            }
             res.json({
                 success: true //成功
             });

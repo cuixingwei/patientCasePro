@@ -6,7 +6,7 @@ var db = require('../utils/msdb');
 var string = require('../utils/string');
 var config = require('../config/config.json');
 var router = express.Router();
-var log = require('log4js').getLogger("dictionary");
+var log = require('log4js').getLogger("case");
 
 /*在查询添加加入全部选项，用于默认选择*/
 var qb = {

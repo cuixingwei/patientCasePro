@@ -6,7 +6,7 @@ var menu = require("../config/menu.json");
 var db = require('../utils/msdb');
 
 var string = require('../utils/string');
-var log = require('log4js').getLogger("index");
+var log = require('log4js').getLogger("case");
 
 
 /* GET home page. */

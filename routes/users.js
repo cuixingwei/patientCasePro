@@ -1,6 +1,6 @@
 var express = require('express');
 var db = require('../utils/msdb');
-var log = require('log4js').getLogger("users");
+var log = require('log4js').getLogger("case");
 
 var router = express.Router();
 

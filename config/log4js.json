@@ -11,6 +11,11 @@
           "numBackups": 3
         },
         {
+          "type": "file",
+          "filename": "log/case.log",
+          "category": "case"
+        },
+        {
           "type": "logLevelFilter",
           "level": "ERROR",
           "appender": {
