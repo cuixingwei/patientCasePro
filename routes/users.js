@@ -1,5 +1,6 @@
 var express = require('express');
 var db = require('../utils/msdb');
+var log = require('log4js').getLogger("users");
 
 var router = express.Router();
 
@@ -17,6 +18,7 @@ router.post('/login', function (req, res, next) {
     };
     db.select(sqlData, function (error, results) {
         if (error) {
+            log.error("/login:"+error);
             res.json({
                 msg: "查询失败"
             })

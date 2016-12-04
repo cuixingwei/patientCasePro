@@ -6,6 +6,7 @@ var db = require('../utils/msdb');
 var string = require('../utils/string');
 var config = require('../config/config.json');
 var router = express.Router();
+var log = require('log4js').getLogger("dictionary");
 
 /*在查询添加加入全部选项，用于默认选择*/
 var qb = {
@@ -27,7 +28,7 @@ router.get('/getDCureMeasure', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -50,7 +51,7 @@ router.get('/getDAge', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -73,7 +74,7 @@ router.get('/getDDiseaseClass', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -96,7 +97,7 @@ router.get('/getDHospitalTriage', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -119,7 +120,7 @@ router.get('/getDDepartment', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -142,7 +143,7 @@ router.get('/getDOutCome', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -165,7 +166,7 @@ router.get('/getDHospitalSend', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -188,7 +189,7 @@ router.get('/getDProfession', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -211,7 +212,7 @@ router.get('/getDIdentity', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -234,7 +235,7 @@ router.get('/getDResult', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -257,7 +258,7 @@ router.get('/getDCooperate', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -280,7 +281,7 @@ router.get('/getDFolk', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -303,7 +304,7 @@ router.get('/getDILLState', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -326,7 +327,7 @@ router.get('/getDDeathProve', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -349,7 +350,7 @@ router.get('/getDChargeXMCode', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -372,7 +373,7 @@ router.get('/getDDiseaseClassState', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -395,7 +396,7 @@ router.get('/getDDiseaseReason', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -427,7 +428,7 @@ router.get('/getPerson', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -450,7 +451,7 @@ router.get('/getStations', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -485,7 +486,7 @@ router.get('/getCars', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             var qb = {
                 id: 'qb',
@@ -513,7 +514,7 @@ router.get('/getAcceptType', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -537,7 +538,7 @@ router.get('/getEventType', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {
@@ -561,7 +562,7 @@ router.get('/getOutResult', function (req, res, next) {
 
     db.select(sqlData, function (error, results) {
         if (error) {
-            console.log(error.message);
+            log.error(error.message);
         } else {
             result = [];
             for (var i = 0; i < results.length; i++) {

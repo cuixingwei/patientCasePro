@@ -6,6 +6,7 @@ var router = express.Router();
 var CaseDAO = require('../public/controller/CaseDAO');
 var string = require("../utils/string");
 
+
 /*历史事件*/
 router.post('/getHistoryEvent', function (req, res, next) {
     CaseDAO.getHistoryEvent(req, res);

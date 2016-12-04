@@ -7,6 +7,7 @@ var ConnectionPool = require('tedious-connection-pool');
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 var async = require('async');
+var log = require('log4js').getLogger("msdb");
 
 var poolConfig = {
     min: 2,
@@ -21,7 +22,7 @@ exports.select = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            log.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         console.log("数据库连接成功!");
@@ -29,7 +30,7 @@ exports.select = function (trans, callback) {
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
-                console.error(err);
+                log.error(err);
                 return callback(true, '执行操作失败!!' + err);
             }
             callback(null, result);
@@ -51,7 +52,7 @@ exports.select = function (trans, callback) {
         connection.execSql(request);
     });
     pool.on('error', function (err) {
-        console.error(err);
+        log.error(err);
     });
 };
 
@@ -60,14 +61,14 @@ exports.change = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            log.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         console.log("数据库连接成功!");
         //use the connection as normal
         var request = new Request(trans.statement, function (err, rowCount) {
             if (err) {
-                console.error(err);
+                log.error(err);
                 return callback(true, '操作失败!!' + err);
             }
             console.log('改变行数 : ' + rowCount);
@@ -108,7 +109,7 @@ exports.changeSeries = function (trans, callback) {
     //acquire a connection
     pool.acquire(function (err, connection) {
         if (err) {
-            console.error('sqlsever 链接失败!');
+            log.error('sqlsever 链接失败!');
             return callback(true, '数据库连接失败!' + err);
         }
         console.log("数据库连接成功!");
@@ -125,7 +126,7 @@ exports.changeSeries = function (trans, callback) {
                 //use the connection as normal
                 var request = new Request(item.statement, function (err, rowCount) {
                     if (err) {
-                        console.error(err);
+                        log.error(err);
                         return cb(err);
                     }
                     result.push(rowCount);
@@ -176,7 +177,7 @@ exports.changeSeries = function (trans, callback) {
 
     });
     pool.on('error', function (err) {
-        console.error(err);
+        log.error(err);
     });
 };
 

@@ -6,6 +6,7 @@ var menu = require("../config/menu.json");
 var db = require('../utils/msdb');
 
 var string = require('../utils/string');
+var log = require('log4js').getLogger("index");
 
 
 /* GET home page. */
@@ -21,7 +22,6 @@ router.get('/', function (req, res, next) {
  * 跳转打印病历页面
  */
 router.get('/printPatientCase', function (req, res, next) {
-    console.log('掉转到打印病历页面');
     res.render('case/printPatientCase', {
         title: '打印病历页面',
         taskCode: req.query.taskCode,
@@ -34,7 +34,6 @@ router.get('/printPatientCase', function (req, res, next) {
  * 跳转打印护理观察记录
  */
 router.get('/printNurseRecord', function (req, res, next) {
-    console.log('跳转打印护理观察记录');
     res.render('case/printNurseRecord', {
         title: '打印护理观察记录',
         taskCode: req.query.taskCode,
@@ -56,7 +55,7 @@ router.get('/main', function (req, res, next) {
 router.get('/logOut', function (req, res, next) {
     req.session.destroy(function (err) {
         if (err) {
-            console.log(err.message);
+            log.error(err.message);
         } else {
             res.render('login', {title: 'Express'});
         }
@@ -73,7 +72,7 @@ router.post('/changePwd', function (req, res, next) {
     };
     db.change(sqlData, function (err, results) {
         if (err) {
-            console.info("操作失败!");
+            log.error("操作失败!");
         } else {
             if (results == 0) {
                 res.json({

@@ -6,6 +6,7 @@ var excel = require("../../utils/excel");
 var string = require("../../utils/string");
 var util = require("../../utils/util");
 var config = require('../../config/config.json');
+var log = require('log4js').getLogger("CaseDAO");
 
 
 /*历史事件查询*/
@@ -57,7 +58,7 @@ exports.getHistoryEvent = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -102,7 +103,7 @@ exports.getChargeByID = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -145,7 +146,7 @@ exports.getTaskByID = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -188,7 +189,7 @@ exports.getCureMeasure = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -223,7 +224,7 @@ exports.getPatientScheduleByID = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
@@ -299,7 +300,7 @@ exports.getPatientNursing = function (req, res) {
     };
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             var startIndex = (page - 1) * rows;
@@ -355,7 +356,7 @@ exports.getPatientsByID = function (req, res) {
 
     db.select(sqlData, function (err, results) {
         if (err) {
-            console.log(results);
+            log.error(err+":"+results);
         } else {
             var result = [];
             for (var i = 0; i < results.length; i++) {
