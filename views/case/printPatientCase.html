@@ -125,7 +125,7 @@
             var url = '/cases/getPatientsByID?taskCode=' + taskCode + '&taskOrder=' + taskOrder;
             $.post(url, function (result) {//加载病历信息
                 if (result.rows.length > 0) {
-                    data = result.rows[patientCaseOrder - 1];
+                    data = result.rows[0];
                     $("#patientName").html(data.patientName);
                     $("#sex").html(data.sex);
                     $("#departmentCode").html(data.department);

@@ -392,60 +392,65 @@ var savePatientCase = function () {
     $('#driver').combobox('setValue', $('#driver').combobox('getText'));
     $('#doctorSign').combobox('setValue', $('#doctorSign').combobox('getText'));
     $('#T').combobox('setValue', $('#T').combobox('getText'));
-    if (addPatientCaseFlag == 1) { //添加
-        var url;
-        url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
-        $.post(url, cxw.serializeObject($('form')), function (data) {
-            if (data.flag == 1) {
-                patientsGrid.datagrid('load', {}); //加载病历
-                patientsListGrid.datagrid('load', {}); //加载病人列表
-                /*加载病历附表*/
-                loadPatientSchedule();
-                /*加载急救措施*/
-                loadCureMeasure();
-                /*加载收费信息列表*/
-                chargeListGrid.datagrid('load', {
-                    taskCode: taskCode,
-                    taskOrder: taskOrder,
-                    patientCaseOrder: patientCaseOrder
-                });
-                /*加载护理信息列表*/
-                nurseObserveRecordGrid.datagrid('load', {
-                    taskCode: taskCode,
-                    taskOrder: taskOrder,
-                    patientCaseOrder: patientCaseOrder
-                });
-                addPatientCaseFlag = 0;
-            } else if (data.flag == 2) {
-                $.messager.alert('提示', '添加病历失败!', 'info');
-            } else {
-                $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-                    window.location.href = "/";
-                });
-            }
-        });
-    } else if (addPatientCaseFlag != 1 && addPatientCaseFlag != -1) {
-        url = '/cases/editPatientCase?taskCode= ' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
-        console.log("修改病历!");
-        $.post(url, cxw.serializeObject($('form')), function (data) {
-            if (data.flag == 1) {
-                patientsGrid.datagrid('load', {}); //加载病历
-                /*加载病历附表*/
-                loadPatientSchedule();
-                /*加载急救措施*/
-                loadCureMeasure();
-                addPatientCaseFlag = 0;
-            } else if (data.flag == 2) {
-                $.messager.alert('提示', '修改病历失败!', 'info');
-            } else {
-                $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
-                    window.location.href = "/";
-                });
-            }
-        });
-    } else {
-        $.messager.alert('提示', '你还没有添加病历，不能修改，请先添加！', 'info');
+    if($("#patientName").val() == ""){
+        $.messager.alert('提示', '患者姓名不能为空!', 'info');
+    }else {
+        if (addPatientCaseFlag == 1) { //添加
+            var url;
+            url = '/cases/addPatientCase?taskCode=' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
+            $.post(url, cxw.serializeObject($('form')), function (data) {
+                if (data.flag == 1) {
+                    patientsGrid.datagrid('load', {}); //加载病历
+                    patientsListGrid.datagrid('load', {}); //加载病人列表
+                    /*加载病历附表*/
+                    loadPatientSchedule();
+                    /*加载急救措施*/
+                    loadCureMeasure();
+                    /*加载收费信息列表*/
+                    chargeListGrid.datagrid('load', {
+                        taskCode: taskCode,
+                        taskOrder: taskOrder,
+                        patientCaseOrder: patientCaseOrder
+                    });
+                    /*加载护理信息列表*/
+                    nurseObserveRecordGrid.datagrid('load', {
+                        taskCode: taskCode,
+                        taskOrder: taskOrder,
+                        patientCaseOrder: patientCaseOrder
+                    });
+                    addPatientCaseFlag = 0;
+                } else if (data.flag == 2) {
+                    $.messager.alert('提示', '添加病历失败!', 'info');
+                } else {
+                    $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                        window.location.href = "/";
+                    });
+                }
+            });
+        } else if (addPatientCaseFlag != 1 && addPatientCaseFlag != -1) {
+            url = '/cases/editPatientCase?taskCode= ' + taskCode + ' &taskOrder= ' + taskOrder + ' &patientCaseOrder= ' + patientCaseOrder + ' &patientCaseNumber= ' + patientCaseNumber + ' &carCode= ' + carCode + ' &carIdentification= ' + carIdentification + ' &patientCaseID= ' + patientCaseID + '&stationCode=' + stationCode;
+            console.log("修改病历!");
+            $.post(url, cxw.serializeObject($('form')), function (data) {
+                if (data.flag == 1) {
+                    patientsGrid.datagrid('load', {}); //加载病历
+                    /*加载病历附表*/
+                    loadPatientSchedule();
+                    /*加载急救措施*/
+                    loadCureMeasure();
+                    addPatientCaseFlag = 0;
+                } else if (data.flag == 2) {
+                    $.messager.alert('提示', '修改病历失败!', 'info');
+                } else {
+                    $.messager.alert('警告', '登录超时，请重新登录!', 'info', function (r) {
+                        window.location.href = "/";
+                    });
+                }
+            });
+        } else {
+            $.messager.alert('提示', '你还没有添加病历，不能修改，请先添加！', 'info');
+        }
     }
+
 };
 /*删除病历*/
 var deletePatientCase = function () {
