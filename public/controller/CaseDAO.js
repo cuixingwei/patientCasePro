@@ -577,7 +577,21 @@ exports.getPatientCases = function (req, res) {
         'left outer join ausp120.tb_Station s on s.分站编码=pc.分站编码  left outer join ausp120.tb_DNationality dna on dna.Code=pc.国籍编码  ';
 
     if (string.isEquals('grid', req.query.type)) {
-        sql += ' where 1=1 and pc.记录时刻 between @startTime and @endTime ';
+        sql += ' where 1=1  ';
+        if (!string.isBlankOrEmpty(startTime)) {
+            sql += ' and  pc.记录时刻>= @startTime ';
+        }
+        if (!string.isBlankOrEmpty(endTime)) {
+            sql += ' and  pc.记录时刻<= @endTime ';
+        }
+
+        if (!string.isBlankOrEmpty(ringStartTime)) {
+            sql += ' and  a.开始受理时刻 >= @ringStartTime ';
+        }
+        if (!string.isBlankOrEmpty(ringEndTime)) {
+            sql += ' and  a.开始受理时刻 <= @ringEndTime ';
+        }
+
         if (!string.isBlankOrEmpty(patientName)) {
             patientName = '%' + patientName + '%';
             sql += ' and pc.姓名 like @patientName';
@@ -587,10 +601,6 @@ exports.getPatientCases = function (req, res) {
         }
         if (!string.isBlankOrEmpty(illnessCode)) {
             sql += ' and pc.病情编码=@illnessCode';
-        }
-
-        if (!string.isBlankOrEmpty(ringStartTime)) {
-            sql += ' and a.开始受理时刻 between @ringStartTime and @ringEndTime ';
         }
 
         if (!string.isBlankOrEmpty(patientCode)) {
@@ -603,7 +613,8 @@ exports.getPatientCases = function (req, res) {
         }
 
         if (!string.isBlankOrEmpty(doctorSign)) {
-            sql += ' and pc.医生签名 like @doctorSign';
+            doctorSign = '%' + doctorSign + '%';
+            sql += ' and pc.随车医生 like @doctorSign';
         }
 
         if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
@@ -641,7 +652,11 @@ exports.getPatientCases = function (req, res) {
             "type": "tinyint"
         }, {"name": "station", "value": station, "type": "varchar"}, {
             "name": "doctorSign",
-            "value": '%' + doctorSign + '%',
+            "value": doctorSign,
+            "type": "varchar"
+        }, {"name": "ringStartTime", "value": ringStartTime, "type": "varchar"}, {
+            "name": "ringEndTime",
+            "value": ringEndTime,
             "type": "varchar"
         }];
     var sqlData = {
