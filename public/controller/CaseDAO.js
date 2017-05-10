@@ -541,13 +541,19 @@ exports.getPatientCases = function (req, res) {
     var startTime = req.body.startTime;
     var endTime = req.body.endTime;
     var taskCode = req.query.taskCode;
-	var patientCode = req.body.patientCode;//病历编码
+    var patientCode = req.body.patientCode;//病历编码
     var patientCaseOrder = req.query.patientCaseOrder; //病历序号
     var carIdentification = req.query.carIdentification; //车辆标识
     var patientName = req.body.patientName;
     var illnessCode = req.body.illnessCode;
     var station = req.body.station;
     var treatResultCode = req.body.treatResultCode;
+
+    var ringStartTime = req.body.ringStartTime;
+    var ringEndTime = req.body.ringEndTime;
+    var doctorSign = req.body.doctorSign;
+
+
     var page = req.body.page;
     var rows = req.body.rows;
     var sql = 'select pc.ID,pc.任务编码,pc.序号,pc.姓名,pc.性别,pc.年龄,pc.国籍编码,pc.身份编码,pc.职业编码,pc.民族编码,    ' +
@@ -571,7 +577,7 @@ exports.getPatientCases = function (req, res) {
         'left outer join ausp120.tb_Station s on s.分站编码=pc.分站编码  left outer join ausp120.tb_DNationality dna on dna.Code=pc.国籍编码  ';
 
     if (string.isEquals('grid', req.query.type)) {
-        sql += ' where a.开始受理时刻 between @startTime and @endTime ';
+        sql += ' where 1=1 and pc.记录时刻 between @startTime and @endTime ';
         if (!string.isBlankOrEmpty(patientName)) {
             patientName = '%' + patientName + '%';
             sql += ' and pc.姓名 like @patientName';
@@ -582,15 +588,24 @@ exports.getPatientCases = function (req, res) {
         if (!string.isBlankOrEmpty(illnessCode)) {
             sql += ' and pc.病情编码=@illnessCode';
         }
-		
-		if (!string.isBlankOrEmpty(patientCode)) {
-			 patientCode = '%' + patientCode + '%';
+
+        if (!string.isBlankOrEmpty(ringStartTime)) {
+            sql += ' and a.开始受理时刻 between @ringStartTime and @ringEndTime ';
+        }
+
+        if (!string.isBlankOrEmpty(patientCode)) {
+            patientCode = '%' + patientCode + '%';
             sql += ' and pc.病历编码 like @patientCode';
         }
 
         if (!string.isBlankOrEmpty(treatResultCode)) {
             sql += ' and pc.救治结果编码=@treatResultCode';
         }
+
+        if (!string.isBlankOrEmpty(doctorSign)) {
+            sql += ' and pc.医生签名 like @doctorSign';
+        }
+
         if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
             station = req.session.stationCode;
             sql += ' and pc.分站编码=@station';
@@ -608,23 +623,27 @@ exports.getPatientCases = function (req, res) {
     }
     sql += ' order by pc.记录时刻 desc';
     var params = [{"name": "taskCode", "value": taskCode, "type": "char"},
-	{"name": "patientCode", "value": patientCode, "type": "varchar"}, {
-        "name": "startTime",
-        "value": startTime,
-        "type": "varchar"
-    }, {"name": "endTime", "value": endTime, "type": "varchar"}, {
-        "name": "patientCaseOrder",
-        "value": patientCaseOrder,
-        "type": "tinyint"
-    }, {"name": "carIdentification", "value": carIdentification, "type": "varchar"}, {
-        "name": "patientName",
-        "value": patientName,
-        "type": "varchar"
-    }, {"name": "illnessCode", "value": illnessCode, "type": "tinyint"}, {
-        "name": "treatResultCode",
-        "value": treatResultCode,
-        "type": "tinyint"
-    }, {"name": "station", "value": station, "type": "varchar"}];
+        {"name": "patientCode", "value": patientCode, "type": "varchar"}, {
+            "name": "startTime",
+            "value": startTime,
+            "type": "varchar"
+        }, {"name": "endTime", "value": endTime, "type": "varchar"}, {
+            "name": "patientCaseOrder",
+            "value": patientCaseOrder,
+            "type": "tinyint"
+        }, {"name": "carIdentification", "value": carIdentification, "type": "varchar"}, {
+            "name": "patientName",
+            "value": patientName,
+            "type": "varchar"
+        }, {"name": "illnessCode", "value": illnessCode, "type": "tinyint"}, {
+            "name": "treatResultCode",
+            "value": treatResultCode,
+            "type": "tinyint"
+        }, {"name": "station", "value": station, "type": "varchar"}, {
+            "name": "doctorSign",
+            "value": '%' + doctorSign + '%',
+            "type": "varchar"
+        }];
     var sqlData = {
         statement: sql,
         params: params

@@ -177,6 +177,15 @@
             $('#endTime').datetimebox({
                 value: getCurrentTime()
             });
+
+            $('#ringStartTime').datetimebox({
+                required: true,
+                value: firstOfMouth()
+            });
+            $('#ringEndTime').datetimebox({
+                value: getCurrentTime()
+            });
+
             /*病情*/
             $('#illnessCode').combobox({
                 url: '/dictionary/getDILLState',
@@ -364,11 +373,11 @@
     </script>
 </head>
 <body class="easyui-layout" data-options="fit:true,border:false">
-<div id="toolbar" style="height: 80px;">
+<div id="toolbar" style="height: 110px;">
     <form id="searchForm">
         <div class="tr_height">
             <div style="width: 33%;float: left;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病历记录时刻:</label>
                 <input id="startTime" name="startTime" style="width: 50%;"/>
             </div>
             <div style="width: 33%;display: inline-block;">
@@ -408,6 +417,20 @@
 			<div style="width: 33%;display: inline-block;float:right;">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病历编码:</label>
                 <input style="width: 50%" name="patientCode"/>
+            </div>
+        </div>
+        <div class="tr_height">
+            <div style="width: 33%;float: left;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">呼救开始时刻:</label>
+                <input id="ringStartTime" name="ringStartTime" style="width: 50%;"/>
+            </div>
+            <div style="width: 33%;display: inline-block;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
+                <input id="ringEndTime" name="ringEndTime" style="width: 50%;"/>
+            </div>
+            <div style="width: 33%;display: inline-block;float:right;">
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">医生签名:</label>
+                <input style="width: 50%" name="doctorSign"/>
             </div>
         </div>
     </form>
