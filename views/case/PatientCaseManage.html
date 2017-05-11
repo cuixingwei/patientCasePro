@@ -20,7 +20,7 @@
         var stationCode = '<%= stationCode %>';
         /*查看病历*/
         var viewFun = function (taskCode, pcOrder, carIdentification, taskOrder) {
-            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder+ '&taskOrder=' + taskOrder;
+            var url = "/patientCaseDetail?taskCode=" + taskCode + "&carIdentification=" + carIdentification + '&page=view&pcOrder=' + pcOrder + '&taskOrder=' + taskOrder;
             window.open(url);
         };
         /*打印病历*/
@@ -35,6 +35,10 @@
             pcOrder = po;
             $('#charge_window').dialog('open');
         };
+
+        function queryGrid() {
+            $('#grid').datagrid('load', cxw.serializeObject($('#searchForm')));
+        }
 
         /*添加收费项*/
         var addCharge = function () {
@@ -65,7 +69,7 @@
                             patientCaseOrder: pcOrder
                         });
                         addChargeFlag = 0;
-                        grid.datagrid('load', cxw.serializeObject($('#searchForm')));
+                        queryGrid();
                     } else if (data.flag == 2) {
                         $.messager.alert('提示', '添加收费项失败!', 'info');
                     } else {
@@ -178,13 +182,7 @@
                 value: getCurrentTime()
             });
 
-            $('#ringStartTime').datetimebox({
-                required: true,
-                value: firstOfMouth()
-            });
-            $('#ringEndTime').datetimebox({
-                value: getCurrentTime()
-            });
+            $('#ringTime').datetimebox({});
 
             /*病情*/
             $('#illnessCode').combobox({
@@ -231,6 +229,14 @@
                 editable: false
             });
 
+            //构造dataGrid查询条件
+            var params = {};
+            var queryForm = $('#searchForm').serializeArray();
+            console.log(queryForm);
+            for (var i = 0; i < queryForm.length; i++) {
+                params[queryForm[i]['name']] = queryForm[i]['value'];
+            }
+
             grid = $('#grid').datagrid(
                     {
                         url: '/cases/getPatientCases?type=grid',
@@ -243,9 +249,10 @@
                         rownumbers: true,
                         pageSize: 20,
                         pageList: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500],
+                        queryParams: params,
                         columns: [[{
                             field: 'acceptStartTime',
-                            title: '呼救时刻',
+                            title: '开始受理时刻',
                             width: "13%",
                             align: 'center'
                         }, {
@@ -368,7 +375,6 @@
             if (stationCode != '101') { //隐藏分站选项
                 document.getElementById("stationDiv").style.visibility = "hidden";
             }
-            grid.datagrid('load', cxw.serializeObject($('#searchForm')));
         });
     </script>
 </head>
@@ -377,7 +383,7 @@
     <form id="searchForm">
         <div class="tr_height">
             <div style="width: 33%;float: left;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病历记录时刻:</label>
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始时刻:</label>
                 <input id="startTime" name="startTime" style="width: 50%;"/>
             </div>
             <div style="width: 33%;display: inline-block;">
@@ -385,10 +391,10 @@
                 <input id="endTime" name="endTime" style="width: 50%;"/>
             </div>
             <div style="width: 33%;display: inline-block;text-align: center">
-                <a href="javascript:void(0);" class="easyui-linkbutton"
+                <a href="javascript:void(0);" class="easyui-linkbutton" id="query"
                    style="text-align: right;display: inline-block;"
                    data-options="iconCls:'ext-icon-zoom',plain:true"
-                   onclick="grid.datagrid('load', cxw.serializeObject($('#searchForm')));">查询</a>
+                   onclick="queryGrid();">查询</a>
             </div>
         </div>
         <div class="tr_height">
@@ -414,21 +420,17 @@
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">送往地点:</label>
                 <input style="width: 50%" name="toAddr"/>
             </div>
-			<div style="width: 33%;display: inline-block;float:right;">
+            <div style="width: 33%;display: inline-block;float:right;">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">病历编码:</label>
                 <input style="width: 50%" name="patientCode"/>
             </div>
         </div>
         <div class="tr_height">
             <div style="width: 33%;float: left;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">呼救开始时刻:</label>
-                <input id="ringStartTime" name="ringStartTime" style="width: 50%;"/>
+                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">开始受理时刻:</label>
+                <input id="ringTime" name="ringTime" style="width: 50%;"/>
             </div>
             <div style="width: 33%;display: inline-block;">
-                <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">结束时刻:</label>
-                <input id="ringEndTime" name="ringEndTime" style="width: 50%;"/>
-            </div>
-            <div style="width: 33%;display: inline-block;float:right;">
                 <label style="width: 30%;text-align: right;display: inline-block;margin-right: 5px;">医生签名:</label>
                 <input style="width: 50%" name="doctorSign"/>
             </div>
@@ -464,11 +466,11 @@
                             <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
                                onclick="javascript:addCharge();">添加</a>
                         </span>
-                        <span style="width: 100px;display: inline-block">
+                    <span style="width: 100px;display: inline-block">
                             <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
                                onclick="javascript:saveCharge();">保存</a>
                         </span>
-                         <span style="width: 100px;display: inline-block">
+                    <span style="width: 100px;display: inline-block">
                             <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-delete'"
                                onclick="javascript:deleteCharge();">删除</a>
                         </span>

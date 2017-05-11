@@ -549,9 +549,9 @@ exports.getPatientCases = function (req, res) {
     var station = req.body.station;
     var treatResultCode = req.body.treatResultCode;
 
-    var ringStartTime = req.body.ringStartTime;
-    var ringEndTime = req.body.ringEndTime;
+    var ringTime = req.body.ringTime;
     var doctorSign = req.body.doctorSign;
+    var toAddr = req.body.toAddr;//送往地点
 
 
     var page = req.body.page;
@@ -579,17 +579,14 @@ exports.getPatientCases = function (req, res) {
     if (string.isEquals('grid', req.query.type)) {
         sql += ' where 1=1  ';
         if (!string.isBlankOrEmpty(startTime)) {
-            sql += ' and  pc.记录时刻>= @startTime ';
+            sql += ' and   a.开始受理时刻 >= @startTime ';
         }
         if (!string.isBlankOrEmpty(endTime)) {
-            sql += ' and  pc.记录时刻<= @endTime ';
+            sql += ' and   a.开始受理时刻 <= @endTime ';
         }
 
-        if (!string.isBlankOrEmpty(ringStartTime)) {
-            sql += ' and  a.开始受理时刻 >= @ringStartTime ';
-        }
-        if (!string.isBlankOrEmpty(ringEndTime)) {
-            sql += ' and  a.开始受理时刻 <= @ringEndTime ';
+        if (!string.isBlankOrEmpty(ringTime)) {
+            sql += ' and  a.开始受理时刻 = @ringTime ';
         }
 
         if (!string.isBlankOrEmpty(patientName)) {
@@ -615,6 +612,11 @@ exports.getPatientCases = function (req, res) {
         if (!string.isBlankOrEmpty(doctorSign)) {
             doctorSign = '%' + doctorSign + '%';
             sql += ' and pc.随车医生 like @doctorSign';
+        }
+
+        if (!string.isBlankOrEmpty(toAddr)) {
+            toAddr = '%' + toAddr + '%';
+            sql += ' and pc.送往地点 like @toAddr';
         }
 
         if (!string.isBlankOrEmpty(req.session.stationCode) && !string.isEquals("101", req.session.stationCode)) {
@@ -654,16 +656,16 @@ exports.getPatientCases = function (req, res) {
             "name": "doctorSign",
             "value": doctorSign,
             "type": "varchar"
-        }, {"name": "ringStartTime", "value": ringStartTime, "type": "varchar"}, {
-            "name": "ringEndTime",
-            "value": ringEndTime,
+        }, {"name": "ringTime", "value": ringTime, "type": "varchar"}, {
+            "name": "toAddr",
+            "value": toAddr,
             "type": "varchar"
         }];
     var sqlData = {
         statement: sql,
         params: params
     };
-
+    console.log(sql);
     db.select(sqlData, function (err, results) {
         if (err) {
             logger.error(results);
