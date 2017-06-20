@@ -113,6 +113,7 @@
             $("#alterDiv").addClass("none");//默认隐藏修改记录
             loadTask(); //加载任务信息
             if (page == 'add') { //添加病历时
+                $("#patientCode").attr("readonly", "readonly");
                 $("#patientCode").val(patientCode);//自动生成病例编码
                 ss = stationCode.substr(1);
                 $("#stationSpan").html(ss);

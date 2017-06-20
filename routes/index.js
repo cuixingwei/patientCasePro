@@ -8,6 +8,8 @@ var db = require('../utils/msdb');
 
 var string = require('../utils/string');
 
+var util = require('../utils/util');
+
 
 /* GET home page. */
 
@@ -146,10 +148,17 @@ router.get('/patientCaseDetail', function (req, res, next) {
         title = '编辑患者信息';
     }
     var taskCode = req.query.taskCode; //任务编码
-    var sql = "select MAX(序号) from ausp120.tb_PatientCase where 任务编码=@taskCode ";
+    var stationCode = req.query.stationCode; //分站编码
+    var currentTime = util.getCurrentTime();
+    var currentDate = currentTime.split(" ")[0];
+    var sql = "select MAX(序号) from ausp120.tb_PatientCase where 分站编码=@stationCode and convert(varchar(20),记录时刻,23)=@currentDate ";
     var sqlData = {
         statement: sql,
-        params: [{"name": "taskCode", "value": taskCode, "type": "varchar"}]
+        params: [{"name": "stationCode", "value": stationCode, "type": "varchar"}, {
+            "name": "currentDate",
+            "value": currentDate,
+            "type": "varchar"
+        }]
     };
     db.select(sqlData, function (err, results) {
         if (err) {
@@ -175,7 +184,7 @@ router.get('/patientCaseDetail', function (req, res, next) {
                 username: req.session.username,
                 pcOrder: req.query.pcOrder,
                 taskOrder: req.query.taskOrder,
-                stationCode: req.query.stationCode
+                stationCode: stationCode
             });
         }
     });
