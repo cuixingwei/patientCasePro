@@ -188,16 +188,16 @@
                             width: "6%",
                             align: 'center',
                             formatter: function (value, row, index) {
-                                /*if (isPassTwoDay(row.acceptStartTime)) { //禁用添加按钮
+                                if (isPassTwoDay(row.acceptStartTime)) { //禁用添加按钮
                                     return cxw
                                             .formatString(
-                                            '<span><b>病历填写日期过期</b><span>');
-                                } else {*/
+                                                    '<span><b>病历填写日期过期</b><span>');
+                                } else {
                                     return cxw
                                             .formatString(
-                                            '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
-                                            row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder, row.stationCode, row.pcOrder);
-//                                }
+                                                    '<img  onclick="addFun(\'{0}\',\'{1}\',\'{2}\',\'{3}\',\'{4}\',\'{5}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/cup_add.png"/>',
+                                                    row.taskCode, row.carIdentification, row.caseNumbers, row.taskOrder, row.stationCode, row.pcOrder);
+                                }
 
                             }
                         }]],
@@ -220,9 +220,9 @@
                             }
                             if (!isBlankOrEmpty(rowData.age)) {
                                 age = rowData.age.split(',');
-                            }else{
-							    age = ['']
-							}
+                            } else {
+                                age = ['']
+                            }
                             if (!isBlankOrEmpty(rowData.sex)) {
                                 sex = rowData.sex.split(',');
                             }
@@ -235,13 +235,13 @@
                             taskCode = rowData.taskCode;
                             carIdentification = rowData.carIdentification;
                             for (var i = 0; i < length; i++) {
-							console.log(patientName[i]+','+ sex[i]+','+ age[i]+','+pcOrder[i]);
+                                console.log(patientName[i] + ',' + sex[i] + ',' + age[i] + ',' + pcOrder[i]);
                                 sql += cxw.formatString('<tr><td>{0}</td><td>{1}</td><td>{2}</td><td><img  onclick="viewFun(\'{3}\',\'{4}\',\'{5}\',\'{6}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user.png"/></td>' +
                                         '<td><img  onclick="editFun(\'{7}\',\'{8}\',\'{9}\',\'{10}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_edit.png"/></td>' +
                                         '<td><img  onclick="deleteFun(\'{11}\',\'{12}\',\'{13}\')" style="vertical-align: middle;" src="stylesheets/images/ext_icons/user/user_delete.png"/></td></tr>',
                                         patientName[i], sex[i], age[i], taskCode, carIdentification, pcOrder[i], rowData.taskOrder, taskCode, carIdentification, pcOrder[i], rowData.taskOrder, taskCode, carIdentification, pcOrder[i]);
-                            
-							}
+
+                            }
                             sql += '</table>';
                             return sql;
 
