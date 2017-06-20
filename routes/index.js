@@ -151,7 +151,7 @@ router.get('/patientCaseDetail', function (req, res, next) {
     var stationCode = req.query.stationCode; //分站编码
     var currentTime = util.getCurrentTime();
     var currentDate = currentTime.split(" ")[0];
-    var sql = "select MAX(序号) from ausp120.tb_PatientCase where 分站编码=@stationCode and convert(varchar(20),记录时刻,23)=@currentDate ";
+    var sql = "select 病历编码 from ausp120.tb_PatientCase where 分站编码=@stationCode and convert(varchar(20),记录时刻,23)=@currentDate ";
     var sqlData = {
         statement: sql,
         params: [{"name": "stationCode", "value": stationCode, "type": "varchar"}, {
@@ -160,16 +160,23 @@ router.get('/patientCaseDetail', function (req, res, next) {
             "type": "varchar"
         }]
     };
+    console.log("sql: ", sqlData);
+    var patientCodeArray = [];
     db.select(sqlData, function (err, results) {
         if (err) {
             console.log(results);
         } else {
             for (var i = 0; i < results.length; i++) {
-                patientCode = results[0][0].value;
+                patientCode = results[i][0].value;
+                patientCode = parseInt(patientCode.split("-")[2]);
+                if (isNaN(patientCode) || string.isBlankOrEmpty(patientCode)) {
+                    patientCode = 0;
+                }
+                patientCodeArray.push(patientCode);
             }
-            if (isNaN(patientCode) || string.isBlankOrEmpty(patientCode)) {
-                patientCode = 0;
-            }
+            console.log("数组:" + patientCodeArray);
+            patientCode = Math.max.apply(null, patientCodeArray);
+            console.log("最大值:" + patientCode);
             patientCode = parseInt(patientCode) + 1;
             if (patientCode < 10) {
                 patientCode = "0" + patientCode;
