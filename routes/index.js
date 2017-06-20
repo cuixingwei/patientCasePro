@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var logger  = require("../utils/log").logger; //日志
+var logger = require("../utils/log").logger; //日志
 
 var menu = require("../config/menu.json");
 
@@ -48,7 +48,7 @@ router.get('/main', function (req, res, next) {
 
 /*退出*/
 router.get('/logOut', function (req, res, next) {
-	logger.info(req.session.center+'的'+req.session.username+'退出登录');
+    logger.info(req.session.center + '的' + req.session.username + '退出登录');
     req.session.destroy(function (err) {
         if (err) {
             console.log(err.message);
@@ -112,7 +112,6 @@ router.get('/menu', function (req, res, next) {
             res.json(result);
         }
     });
-    //res.json(menu);
 });
 
 
@@ -136,6 +135,7 @@ router.get('/PersonManage', function (req, res, next) {
 /*病历详情页*/
 router.get('/patientCaseDetail', function (req, res, next) {
     var title = '';
+    var patientCode = 0;
     if (string.isEquals('add', req.query.page)) {
         title = '新增患者信息';
     }
@@ -145,16 +145,39 @@ router.get('/patientCaseDetail', function (req, res, next) {
     if (string.isEquals('edit', req.query.page)) {
         title = '编辑患者信息';
     }
-    res.render('case/patientCaseDetail', {
-        taskCode: req.query.taskCode,
-        page: req.query.page,
-        caseNumbers: req.query.caseNumbers,
-        title: title,
-        carIdentification: req.query.carIdentification,
-        username: req.session.username,
-        pcOrder: req.query.pcOrder,
-        taskOrder: req.query.taskOrder,
-        stationCode: req.query.stationCode
+    var taskCode = req.query.taskCode; //任务编码
+    var sql = "select MAX(序号) from ausp120.tb_PatientCase where 任务编码=@taskCode ";
+    var sqlData = {
+        statement: sql,
+        params: [{"name": "taskCode", "value": taskCode, "type": "varchar"}]
+    };
+    db.select(sqlData, function (err, results) {
+        if (err) {
+            console.log(results);
+        } else {
+            for (var i = 0; i < results.length; i++) {
+                patientCode = results[0][0].value;
+            }
+            if (isNaN(patientCode) || string.isBlankOrEmpty(patientCode)) {
+                patientCode = 0;
+            }
+            patientCode = parseInt(patientCode) + 1;
+            if (patientCode < 10) {
+                patientCode = "0" + patientCode;
+            }
+            res.render('case/patientCaseDetail', {
+                taskCode: taskCode,
+                page: req.query.page,
+                caseNumbers: req.query.caseNumbers,
+                title: title,
+                patientCode: patientCode,
+                carIdentification: req.query.carIdentification,
+                username: req.session.username,
+                pcOrder: req.query.pcOrder,
+                taskOrder: req.query.taskOrder,
+                stationCode: req.query.stationCode
+            });
+        }
     });
 });
 

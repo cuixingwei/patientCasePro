@@ -91,7 +91,8 @@
         var taskCode = '<%= taskCode %>';
         var taskOrder = '<%= taskOrder %>';
         var caseNumbers = '<%= caseNumbers %>';
-        if(caseNumbers == 'undefined'){
+        var patientCode = '<%= patientCode %>';
+        if (caseNumbers == 'undefined') {
             caseNumbers = 0;
         }
         var pcOrder = '<%= pcOrder %>';
@@ -112,6 +113,7 @@
             $("#alterDiv").addClass("none");//默认隐藏修改记录
             loadTask(); //加载任务信息
             if (page == 'add') { //添加病历时
+                $("#patientCode").val(patientCode);//自动生成病例编码
                 ss = stationCode.substr(1);
                 $("#stationSpan").html(ss);
                 $("#yearMonthSpan").html(currentTime.split('-')[0] + currentTime.split('-')[1] + currentTime.split('-')[2]);
@@ -716,11 +718,11 @@
                             <a href="#" class="easyui-linkbutton" data-options="iconCls:'ext-icon-add'"
                                onclick="javascript:addMedication();">添加</a>
                         </span>
-                        <span style="width: 100px;display: inline-block">
+                    <span style="width: 100px;display: inline-block">
                             <a href="#" id="methodSave" class="easyui-linkbutton" data-options="iconCls:'ext-icon-save'"
                                onclick="javascript:saveMedication();">保存</a>
                         </span>
-                         <span style="width: 100px;display: inline-block">
+                    <span style="width: 100px;display: inline-block">
                             <a href="#" id="methodDelete" class="easyui-linkbutton"
                                data-options="iconCls:'ext-icon-delete'"
                                onclick="javascript:deleteMedication();">删除</a>

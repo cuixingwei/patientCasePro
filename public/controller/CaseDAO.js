@@ -93,6 +93,7 @@ exports.getHistoryEvent = function (req, res) {
         statement: sql + sqlEnd,
         params: params
     };
+    console.log("sql:   " + sqlData.statement);
     db.select(sqlData, function (err, results) {
         if (err) {
             logger.error(results);
